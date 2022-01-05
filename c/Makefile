@@ -1,5 +1,6 @@
 CC = gcc
 CFLAGS = -g -I.
+LIBS = -lm
 DEPS = ketch.h
 OBJ = ketch.c ketch_aft.c
 
@@ -10,7 +11,7 @@ OBJ = ketch.c ketch_aft.c
 # Creates executable locally from object files
 ketch_aft: $(OBJ)
 	@echo "Building ketch_aft binary in local directory"
-	$(CC) -o $@ $^ $(CFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 # Install executable in bin directory
 install: ketch_aft
