@@ -1,0 +1,6 @@
+cd c
+make
+cd ..
+cd cpp
+make
+cd ..
