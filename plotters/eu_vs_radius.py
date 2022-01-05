@@ -173,7 +173,7 @@ def eu_vs_radius(n_inc=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, time_
     tt_file = 'simple_time_temp.txt'
 
     # Check to make sure necessary age calculation executable(s) exist
-    if not Path(fp + '../bin/RDAAM_He').is_file():
+    if not Path(fp + 'bin/RDAAM_He').is_file():
         raise FileNotFoundError("Age calculation program bin/RDAAM_He not found. Did you compile and install it?")
 
     # Create figure
@@ -245,7 +245,7 @@ def eu_vs_radius(n_inc=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, time_
             zr_y_list.append(zr_radius)
 
             # Calculate (U-Th)/He ages
-            command = fp + '../bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
+            command = fp + 'bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
