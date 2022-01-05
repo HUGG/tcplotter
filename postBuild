@@ -1,6 +1,6 @@
 cd c
-make
+make; make install
 cd ..
 cd cpp
-make
+make; make install
 cd ..
