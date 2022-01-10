@@ -18,19 +18,19 @@ def calc_eu(uranium, thorium):
 
 
 # Define function for creating plot of cooling rates
-def rate_vs_radius_eu(n_inc=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u_min=1.0, ap_u_max=150.0, zr_u_min=1.0, zr_u_max=4000.0,
+def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u_min=1.0, ap_u_max=150.0, zr_u_min=1.0, zr_u_max=4000.0,
                  ap_rad_min=40.0, ap_rad_max=100.0, zr_rad_min=40.0, zr_rad_max=100.0, ap_thorium=0.0, zr_thorium=0.0,
-                 plot_type=3, save_plot=False, show_plot=True, verbose=False, use_widget=False):
+                 plot_type=3, save_plot=False, display_plot=True, verbose=False, use_widget=False):
     """
     A script for calculating thermochronometer ages and closure temperatures for different cooling rates, effective
     uranium concentrations, and equivalent spherical radii.
 
     Parameters
     ----------
-    n_inc : int, default=21
+    num_points : int, default=21
         Number of points along x and y axes where ages/closure temperatures are
         calculated.
-        NOTE: A value of n_inc = 101 was used in the manuscript. It has been
+        NOTE: A value of num_points = 101 was used in the manuscript. It has been
         reduced here to make the plotting faster. Set this to 101 to reproduce
         the manuscript Figure 4.
     rate_min : float, default=0.1
@@ -64,7 +64,7 @@ def rate_vs_radius_eu(n_inc=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap
         1 = apatite, 2 = zircon, 3 = both
     save_plot : bool, default=False
         Flag for whether to save the plot to a file.
-    show_plot : bool, default=True
+    display_plot : bool, default=True
         Flag for whether to display the plot.
     verbose : bool, default=False
         Enable/disable verbose output.
@@ -76,11 +76,6 @@ def rate_vs_radius_eu(n_inc=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap
     None
 
     """
-    # --- General model parameters ----------------------------------------------- #
-
-    # Set base directory (use empty string for local working directory)
-    fp = ''
-
     # --- Plotting parameters ---------------------------------------------------- #
 
     # Plotting flags and options
@@ -121,16 +116,22 @@ def rate_vs_radius_eu(n_inc=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap
         print("Warning: IPython.display module not found. Disabling graphical progress bar.")
         use_widget = False
 
+    # Ensure relative paths work by setting working dir to dir containing this script file
+    wd_orig = os.getcwd()
+    script_path = os.path.abspath(__file__)
+    dir_name = os.path.dirname(script_path)
+    os.chdir(dir_name)
+
     # Create arrays of U concentrations
-    ap_u = np.linspace(ap_u_min, ap_u_max, n_inc)
-    zr_u = np.linspace(zr_u_min, zr_u_max, n_inc)
+    ap_u = np.linspace(ap_u_min, ap_u_max, num_points)
+    zr_u = np.linspace(zr_u_min, zr_u_max, num_points)
 
     # Create grain radius arrays
-    ap_rad = np.linspace(ap_rad_min, ap_rad_max, n_inc)
-    zr_rad = np.linspace(zr_rad_min, zr_rad_max, n_inc)
+    ap_rad = np.linspace(ap_rad_min, ap_rad_max, num_points)
+    zr_rad = np.linspace(zr_rad_min, zr_rad_max, num_points)
 
     # Create cooling rate array
-    rates = np.logspace(start=np.log10(rate_min), stop=np.log10(rate_max), num=n_inc)
+    rates = np.logspace(start=np.log10(rate_min), stop=np.log10(rate_max), num=num_points)
 
     # Calculate effective uranium
     ap_eu = calc_eu(ap_u, ap_thorium)
@@ -153,7 +154,7 @@ def rate_vs_radius_eu(n_inc=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap
     tt_file = 'simple_time_temp.txt'
 
     # Check to make sure necessary age calculation executable(s) exist
-    if not Path(fp + '../bin/RDAAM_He').is_file():
+    if not Path('../bin/RDAAM_He').is_file():
         raise FileNotFoundError("Age calculation program bin/RDAAM_He not found. Did you compile and install it?")
 
     # Create figure
@@ -235,7 +236,7 @@ def rate_vs_radius_eu(n_inc=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap
                     f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
 
             # Calculate (U-Th)/He ages
-            command = fp + '../bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
+            command = '../bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -292,7 +293,7 @@ def rate_vs_radius_eu(n_inc=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap
                     f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
 
             # Calculate (U-Th)/He ages
-            command = fp + '../bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
+            command = '../bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -493,17 +494,27 @@ def rate_vs_radius_eu(n_inc=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap
 
     # Save plot if requested
     if save_plot:
+        # Create plots directory if it does not already exist
+        plots_exists = os.path.exists('../plots')
+        if not plots_exists:
+            # Create a new directory because it does not exist
+            os.makedirs('../plots')
+
+        # Define plot filename based on type of plot and save plot
         if plot_type == 1:
             plot_savename = plot_filename + '_apatite_' + str(dpi) + 'dpi.' + out_fmt
         elif plot_type == 2:
             plot_savename = plot_filename + '_zircon_' + str(dpi) + 'dpi.' + out_fmt
         else:
             plot_savename = plot_filename + '_apatite_zircon_' + str(dpi) + 'dpi.' + out_fmt
-        plt.savefig(fp + '../' + plot_savename, dpi=dpi)
+        plt.savefig('../plots/' + plot_savename, dpi=dpi)
 
     # Save plot if requested
-    if show_plot:
+    if display_plot:
         plt.show()
+
+    # Revert to original working directory
+    os.chdir(wd_orig)
 
     return None
 
@@ -513,32 +524,39 @@ def main():
                                                  'different cooling rates, effective uranium concentrations, '
                                                  'and equivalent spherical radii.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--n_inc', help='Number of points along x and y axes where ages/closure temperatures are '
-                                        'calculated. NOTE: A value of n_inc = 101 was used in the manuscript. It has '
+    parser.add_argument('--num-points', dest='num_points', help='Number of points along x and y axes where ages/closure temperatures are '
+                                        'calculated. NOTE: A value of num_points = 101 was used in the manuscript. It has '
                                         'been reduced here to make the plotting faster. Set this to 101 to reproduce '
                                         'the manuscript Figure 4.', default=21, type=int)
-    parser.add_argument('--rate_min', help='Minimum cooling rate in degrees C per Myr.', default=0.1, type=float)
-    parser.add_argument('--rate_max', help='Maximum cooling rate in degrees C per Myr.', default=100.0, type=float)
-    parser.add_argument('--temp_max', help='Max temperature for cooling history (in degrees C).', default=250.0,
+    parser.add_argument('--rate-min', dest='rate_min', help='Minimum cooling rate in degrees C per Myr.', default=0.1, type=float)
+    parser.add_argument('--rate-max', dest='rate_max', help='Maximum cooling rate in degrees C per Myr.', default=100.0, type=float)
+    parser.add_argument('--temp-max', dest='temp_max', help='Max temperature for cooling history (in degrees C).', default=250.0,
                         type=float)
-    parser.add_argument('--ap_u_min', help='Minimum apatite uranium concentration in ppm', default=1.0, type=float)
-    parser.add_argument('--ap_u_max', help='Maximum apatite uranium concentration in ppm', default=150.0, type=float)
-    parser.add_argument('--zr_u_min', help='Minimum zircon uranium concentration in ppm', default=1.0, type=float)
-    parser.add_argument('--zr_u_max', help='Maximum zircon uranium concentration in ppm', default=1500.0, type=float)
-    parser.add_argument('--ap_rad_min', help='Minimum apatite equivalent spherical grain radius in micrometers', default=40.0, type=float)
-    parser.add_argument('--ap_rad_max', help='Maximum apatite equivalent spherical grain radius in micrometers', default=100.0, type=float)
-    parser.add_argument('--zr_rad_min', help='Minimum zircon equivalent spherical grain radius in micrometers', default=40.0, type=float)
-    parser.add_argument('--zr_rad_max', help='Maximum zircon equivalent spherical grain radius in micrometers', default=100.0, type=float)
-    parser.add_argument('--ap_thorium', help='Apatite thorium concentration in ppm', default=0.0, type=float)
-    parser.add_argument('--zr_thorium', help='Zircon thorium concentration in ppm', default=0.0, type=float)
-    parser.add_argument('--plot_type', help='Cooling rate versus radius/eU plot type. 1 = apatite, 2 = zircon, 3 = both.', default=3, type=int)
-    parser.add_argument('--save_plot', help='Save plot to file?', default=False, type=bool)
-    parser.add_argument('--show_plot', help='Display plot on the screen?', default=True, type=bool)
-    parser.add_argument('--verbose', help='Enable/disable verbose output', default=False, type=bool)
+    parser.add_argument('--ap-u-min', dest='ap_u_min', help='Minimum apatite uranium concentration in ppm', default=1.0, type=float)
+    parser.add_argument('--ap-u-max', dest='ap_u_max', help='Maximum apatite uranium concentration in ppm', default=150.0, type=float)
+    parser.add_argument('--zr-u-min', dest='zr_u_min', help='Minimum zircon uranium concentration in ppm', default=1.0, type=float)
+    parser.add_argument('--zr-u-max', dest='zr_u_max', help='Maximum zircon uranium concentration in ppm', default=1500.0, type=float)
+    parser.add_argument('--ap-rad-min', dest='ap_rad_min', help='Minimum apatite equivalent spherical grain radius in micrometers', default=40.0, type=float)
+    parser.add_argument('--ap-rad-max', dest='ap_rad_max', help='Maximum apatite equivalent spherical grain radius in micrometers', default=100.0, type=float)
+    parser.add_argument('--zr-rad-min', dest='zr_rad_min', help='Minimum zircon equivalent spherical grain radius in micrometers', default=40.0, type=float)
+    parser.add_argument('--zr-rad-max', dest='zr_rad_max', help='Maximum zircon equivalent spherical grain radius in micrometers', default=100.0, type=float)
+    parser.add_argument('--ap-thorium', dest='ap_thorium', help='Apatite thorium concentration in ppm', default=0.0, type=float)
+    parser.add_argument('--zr-thorium', dest='zr_thorium', help='Zircon thorium concentration in ppm', default=0.0, type=float)
+    parser.add_argument('--plot-type', dest='plot_type', help='Cooling rate versus radius/eU plot type. 1 = apatite, 2 = zircon, '
+                                            '3 = both.', default=3, type=int)
+    parser.add_argument('--save-plot', dest='save_plot', help='Save plot to file', action='store_true',
+                        default=False)
+    parser.add_argument('--no-display-plot', dest='no_display_plot', help='Do not display plot on the screen',
+                        action='store_true', default=False)
+    parser.add_argument('-v', '--verbose', help='Enable verbose output', action='store_true', default=False)
 
     args = parser.parse_args()
 
-    rate_vs_radius_eu(args.n_inc, args.rate_min, args.rate_max, args.temp_max, args.ap_u_min, args.ap_u_max, args.zr_u_min, args.zr_u_max, args.ap_rad_min, args.ap_rad_max, args.zr_rad_min, args.zr_rad_max, args.ap_thorium, args.zr_thorium, args.plot_type, args.save_plot, args.show_plot, args.verbose, use_widget=False)
+    # Flip command-line flag to be opposite for function call
+    # Function call expects display_plot = True for plot to be displayed
+    display_plot = not args.no_display_plot
+
+    rate_vs_radius_eu(num_points=args.num_points, rate_min=args.rate_min, rate_max=args.rate_max, temp_max=args.temp_max, ap_u_min=args.ap_u_min, ap_u_max=args.ap_u_max, zr_u_min=args.zr_u_min, zr_u_max=args.zr_u_max, ap_rad_min=args.ap_rad_min, ap_rad_max=args.ap_rad_max, zr_rad_min=args.zr_rad_min, zr_rad_max=args.zr_rad_max, ap_thorium=args.ap_thorium, zr_thorium=args.zr_thorium, plot_type=args.plot_type, save_plot=args.save_plot, display_plot=display_plot, verbose=args.verbose, use_widget=False)
 
 
 if __name__ == "__main__":

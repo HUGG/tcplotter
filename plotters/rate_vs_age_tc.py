@@ -18,14 +18,14 @@ def calc_eu(uranium, thorium):
 
 
 # Define function for creating plot of cooling rates
-def rate_vs_age_tc(n_inc=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u1=1.0, ap_u2=20.0, ap_u3=150.0, zr_u1=10.0, zr_u2=200.0, zr_u3=4000.0, ap_rad=45.0, zr_rad=60.0, ap_thorium=0.0, zr_thorium=0.0, ahe_uncertainty=0.1, aft_uncertainty=0.2, zhe_uncertainty=0.1, plot_type=3, save_plot=False, show_plot=True, verbose=False, use_widget=False):
+def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u1=1.0, ap_u2=20.0, ap_u3=150.0, zr_u1=10.0, zr_u2=200.0, zr_u3=4000.0, ap_rad=45.0, zr_rad=60.0, ap_thorium=0.0, zr_thorium=0.0, ahe_uncertainty=0.1, aft_uncertainty=0.2, zhe_uncertainty=0.1, plot_type=3, save_plot=False, display_plot=True, verbose=False, use_widget=False):
     """
     A script for calculating thermochronometer ages and closure temperatures for different cooling rates, effective
     uranium concentrations, and equivalent spherical radii.
 
     Parameters
     ----------
-    n_inc : int, default=101
+    num_points : int, default=101
         Number of points along x and y axes where ages/closure temperatures are
         calculated.
     rate_min : float, default=0.1
@@ -66,7 +66,7 @@ def rate_vs_age_tc(n_inc=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u
         3 = Cooling rate versus age and closure temperature
     save_plot : bool, default=False
         Flag for whether to save the plot to a file.
-    show_plot : bool, default=True
+    display_plot : bool, default=True
         Flag for whether to display the plot.
     verbose : bool, default=False
         Enable/disable verbose output.
@@ -80,9 +80,6 @@ def rate_vs_age_tc(n_inc=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u
     """
 
     # --- General model parameters ----------------------------------------------- #
-
-    # Set base directory (use empty string for local working directory)
-    fp = ''
 
     # Clean up temporary files?
     clean_up_files = True
@@ -116,6 +113,12 @@ def rate_vs_age_tc(n_inc=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u
         print("Warning: IPython.display module not found. Disabling graphical progress bar.")
         use_widget = False
 
+    # Ensure relative paths work by setting working dir to dir containing this script file
+    wd_orig = os.getcwd()
+    script_path = os.path.abspath(__file__)
+    dir_name = os.path.dirname(script_path)
+    os.chdir(dir_name)
+
     # Make lists for apatite and zircon uranium concentrations
     ap_u_list = [ap_u1, ap_u2, ap_u3]
     zr_u_list = [zr_u1, zr_u2, zr_u3]
@@ -131,7 +134,7 @@ def rate_vs_age_tc(n_inc=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u
         raise ValueError('Bad value for plot_type. Must be 1, 2, or 3.')
 
     # Define cooling rates to consider
-    rates = np.logspace(start=np.log10(rate_min), stop=np.log10(rate_max), num=n_inc)
+    rates = np.logspace(start=np.log10(rate_min), stop=np.log10(rate_max), num=num_points)
 
     # Plot titles
     title_list = [f'Low eU (ap={ap_u_list[0]:.1f}, zr={zr_u_list[0]:.1f} ppm)',
@@ -142,9 +145,9 @@ def rate_vs_age_tc(n_inc=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u
     tt_file = 'simple_time_temp.txt'
 
     # Check to make sure necessary age calculation executable(s) exist
-    if not Path(fp + '../bin/RDAAM_He').is_file():
+    if not Path('../bin/RDAAM_He').is_file():
         raise FileNotFoundError("Age calculation program bin/RDAAM_He not found. Did you compile and install it?")
-    if not Path(fp + '../bin/ketch_aft').is_file():
+    if not Path('../bin/ketch_aft').is_file():
         raise FileNotFoundError("Age calculation program bin/ketch_aft not found. Did you compile and install it?")
 
     # Calculate total number of models that will be run
@@ -208,7 +211,7 @@ def rate_vs_age_tc(n_inc=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u
                 f.write('{0:.4f},{1:.1f}'.format(start_time, temp_max))
 
             # Calculate He ages
-            command = fp + '../bin/RDAAM_He ' + tt_file + ' ' + str(ap_rad) + ' ' + str(ap_uranium) + ' ' + str(
+            command = '../bin/RDAAM_He ' + tt_file + ' ' + str(ap_rad) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_rad) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -218,7 +221,7 @@ def rate_vs_age_tc(n_inc=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u
             corr_zhe_age = stdout[1].split()[7].decode('UTF-8')
 
             # Calculate AFT age
-            command = fp + '../bin/ketch_aft ' + tt_file
+            command = '../bin/ketch_aft ' + tt_file
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
             # Parse output for AFT age
@@ -354,12 +357,22 @@ def rate_vs_age_tc(n_inc=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u
 
     # Save plot if requested
     if save_plot:
+        # Create plots directory if it does not already exist
+        plots_exists = os.path.exists('../plots')
+        if not plots_exists:
+            # Create a new directory because it does not exist
+            os.makedirs('../plots')
+
+        # Define plot filename and save plot
         plot_filename = plot_filename + '_' + str(dpi) + 'dpi.' + out_fmt
-        plt.savefig(fp + '../' + plot_filename, dpi=dpi)
+        plt.savefig('../plots/' + plot_filename, dpi=dpi)
 
     # Show plot if requested
-    if show_plot:
+    if display_plot:
         plt.show()
+
+    # Revert to original working directory
+    os.chdir(wd_orig)
 
     return None
 
@@ -368,51 +381,57 @@ def main():
     parser = argparse.ArgumentParser(description='Calculates thermochronometer ages and closure temperatures for '
                                                  'different cooling rates and eU concentrations.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--n_inc', help='Number of points along x and y axes where ages/closure temperatures are '
+    parser.add_argument('--num-points', dest='num_points', help='Number of points along x and y axes where ages/closure temperatures are '
                                         'calculated.', default=101, type=int)
-    parser.add_argument('--rate_min', help='Minimum cooling rate in degrees C per Myr.', default=0.1, type=float)
-    parser.add_argument('--rate_max', help='Maximum cooling rate in degrees C per Myr.', default=100.0, type=float)
-    parser.add_argument('--temp_max', help='Max temperature for cooling history (in degrees C).', default=250.0,
+    parser.add_argument('--rate-min', dest='rate_min', help='Minimum cooling rate in degrees C per Myr.', default=0.1, type=float)
+    parser.add_argument('--rate-max', dest='rate_max', help='Maximum cooling rate in degrees C per Myr.', default=100.0, type=float)
+    parser.add_argument('--temp-max', dest='temp_max', help='Max temperature for cooling history (in degrees C).', default=250.0,
                         type=float)
-    parser.add_argument('--ap_u1', help='Apatite uranium concentration in ppm for upper plot panel', default=1.0,
+    parser.add_argument('--ap-u1', dest='ap_u1', help='Apatite uranium concentration in ppm for upper plot panel', default=1.0,
                         type=float)
-    parser.add_argument('--ap_u2', help='Apatite uranium concentration in ppm for middle plot panel', default=20.0,
+    parser.add_argument('--ap-u2', dest='ap_u2', help='Apatite uranium concentration in ppm for middle plot panel', default=20.0,
                         type=float)
-    parser.add_argument('--ap_u3', help='Apatite uranium concentration in ppm for lower plot panel', default=150.0,
+    parser.add_argument('--ap-u3', dest='ap_u3', help='Apatite uranium concentration in ppm for lower plot panel', default=150.0,
                         type=float)
-    parser.add_argument('--zr_u1', help='Zircon uranium concentration in ppm for upper plot panel', default=10.0,
+    parser.add_argument('--zr-u1', dest='zr_u1', help='Zircon uranium concentration in ppm for upper plot panel', default=10.0,
                         type=float)
-    parser.add_argument('--zr_u2', help='Zircon uranium concentration in ppm for middle plot panel', default=200.0,
+    parser.add_argument('--zr-u2', dest='zr_u2', help='Zircon uranium concentration in ppm for middle plot panel', default=200.0,
                         type=float)
-    parser.add_argument('--zr_u3', help='Zircon uranium concentration in ppm for lower plot panel', default=4000.0,
+    parser.add_argument('--zr-u3', dest='zr_u3', help='Zircon uranium concentration in ppm for lower plot panel', default=4000.0,
                         type=float)
-    parser.add_argument('--ap_rad', help='Apatite equivalent spherical grain radius in micrometers',
+    parser.add_argument('--ap-rad', dest='ap_rad', help='Apatite equivalent spherical grain radius in micrometers',
                         default=45.0, type=float)
-    parser.add_argument('--zr_rad', help='Zircon equivalent spherical grain radius in micrometers',
+    parser.add_argument('--zr-rad', dest='zr_rad', help='Zircon equivalent spherical grain radius in micrometers',
                         default=60.0, type=float)
-    parser.add_argument('--ap_thorium', help='Apatite thorium concentration in ppm', default=0.0, type=float)
-    parser.add_argument('--zr_thorium', help='Zircon thorium concentration in ppm', default=0.0, type=float)
-    parser.add_argument('--ahe_uncertainty', help='Apatite U-Th/He age uncertainty fraction. Enter 0.1 for 10 percent '
+    parser.add_argument('--ap-thorium', dest='ap_thorium', help='Apatite thorium concentration in ppm', default=0.0, type=float)
+    parser.add_argument('--zr-thorium', dest='zr_thorium', help='Zircon thorium concentration in ppm', default=0.0, type=float)
+    parser.add_argument('--ahe-uncertainty', dest='ahe_uncertainty', help='Apatite U-Th/He age uncertainty fraction. Enter 0.1 for 10 percent '
                                                   'uncertainty.', default=0.1,
                         type=float)
-    parser.add_argument('--aft_uncertainty', help='Apatite fission-track age uncertainty fraction. Enter 0.2 for 20 '
+    parser.add_argument('--aft-uncertainty', dest='aft_uncertainty', help='Apatite fission-track age uncertainty fraction. Enter 0.2 for 20 '
                                                   'percent uncertainty.',
                         default=0.2,
                         type=float)
-    parser.add_argument('--zhe_uncertainty', help='Zircon U-Th/He age uncertainty fraction. Enter 0.1 for 10 percent '
+    parser.add_argument('--zhe-uncertainty', dest='zhe_uncertainty', help='Zircon U-Th/He age uncertainty fraction. Enter 0.1 for 10 percent '
                                                   'uncertainty.', default=0.1,
                         type=float)
-    parser.add_argument('--plot_type',
+    parser.add_argument('--plot-type', dest='plot_type',
                         help='1 = Cooling rate versus closure temperature. 2 = Cooling rate versus age. 3 = Cooling '
                              'rate versus age and closure temperature',
                         default=3, type=int)
-    parser.add_argument('--save_plot', help='Save plot to file?', default=False, type=bool)
-    parser.add_argument('--show_plot', help='Display plot on the screen?', default=True, type=bool)
-    parser.add_argument('--verbose', help='Enable/disable verbose output', default=False, type=bool)
+    parser.add_argument('--save-plot', dest='save_plot', help='Save plot to file', action='store_true',
+                        default=False)
+    parser.add_argument('--no-display-plot', dest='no_display_plot', help='Do not display plot on the screen',
+                        action='store_true', default=False)
+    parser.add_argument('-v', '--verbose', help='Enable verbose output', action='store_true', default=False)
 
     args = parser.parse_args()
 
-    rate_vs_age_tc(args.n_inc, args.rate_min, args.rate_max, args.temp_max, args.ap_u1, args.ap_u2, args.ap_u3, args.zr_u1, args.zr_u2, args.zr_u3, args.ap_rad, args.zr_rad, args.ap_thorium, args.zr_thorium, args.ahe_uncertainty, args.aft_uncertainty, args.zhe_uncertainty, args.plot_type, args.save_plot, args.show_plot, args.verbose, use_widget=False)
+    # Flip command-line flag to be opposite for function call
+    # Function call expects display_plot = True for plot to be displayed
+    display_plot = not args.no_display_plot
+
+    rate_vs_age_tc(num_points=args.num_points, rate_min=args.rate_min, rate_max=args.rate_max, temp_max=args.temp_max, ap_u1=args.ap_u1, ap_u2=args.ap_u2, ap_u3=args.ap_u3, zr_u1=args.zr_u1, zr_u2=args.zr_u2, zr_u3=args.zr_u3, ap_rad=args.ap_rad, zr_rad=args.zr_rad, ap_thorium=args.ap_thorium, zr_thorium=args.zr_thorium, ahe_uncertainty=args.ahe_uncertainty, aft_uncertainty=args.aft_uncertainty, zhe_uncertainty=args.zhe_uncertainty, plot_type=args.plot_type, save_plot=args.save_plot, display_plot=display_plot, verbose=args.verbose, use_widget=False)
 
 
 if __name__ == "__main__":

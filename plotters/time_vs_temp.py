@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
 # Import libraries we need
+import argparse
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 import numpy as np
-import argparse
+import os
 
 
 # Define function for creating plot of cooling rates
 def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, temp_max=250.0, time_max=50.0,
-                 save_plot=False, show_plot=True,
+                 save_plot=False, display_plot=True,
                  ):
     """
     Plots cooling rate lines for different input rates.
@@ -30,18 +31,13 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
         Maximum value for time on x-axis of plot in millions of years ago (Ma).
     save_plot : bool, default=False
         Flag for whether to save the plot to a file.
-    show_plot : bool, default=True
+    display_plot : bool, default=True
         Flag for whether to display the plot.
 
     Returns
     -------
     None
     """
-
-    # --- General model parameters ----------------------------------------------- #
-
-    # Set base directory (use empty string for local working directory)
-    fp = ''
 
     # --- Plotting parameters ---------------------------------------------------- #
     # Plotting flags and options
@@ -57,6 +53,12 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
     #  are doing :)                                                                #
     #                                                                              #
     # ---------------------------------------------------------------------------- #
+
+    # Ensure relative paths work by setting working dir to dir containing this script file
+    wd_orig = os.getcwd()
+    script_path = os.path.abspath(__file__)
+    dir_name = os.path.dirname(script_path)
+    os.chdir(dir_name)
 
     # Create arrays of points to plot
     min_rate_x = np.array([temp_max / rate_min, 0.0])
@@ -100,13 +102,22 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
 
     # Save plot if requested
     if save_plot:
-        plot_filename = 'cooling_rates_figure1_' + str(dpi) + 'dpi.' + out_fmt
-        # Save plots in base directory (not py subdirectory)
-        plt.savefig(fp + '../' + plot_filename, dpi=dpi)
+        # Create plots directory if it does not already exist
+        plots_exists = os.path.exists('../plots')
+        if not plots_exists:
+            # Create a new directory because it does not exist
+            os.makedirs('../plots')
 
-    # Show plot if requested
-    if show_plot:
+        # Set plot filename and save plot
+        plot_filename = 'time_vs_temp_' + str(dpi) + 'dpi.' + out_fmt
+        plt.savefig('../plots/' + plot_filename, dpi=dpi)
+
+    # Display plot if requested
+    if display_plot:
         plt.show()
+
+    # Revert to original working directory
+    os.chdir(wd_orig)
 
     return None
 
@@ -115,23 +126,27 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
 def main():
     parser = argparse.ArgumentParser(description='Plots cooling rate lines for different input rates',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--rate_min', help='Minimum cooling rate to plot in degrees C / Myr', default=0.1, type=float)
-    parser.add_argument('--rate_slow', help='"Slow" cooling rate to plot in degrees C / Myr', default=1.0, type=float)
-    parser.add_argument('--rate_avg', help='"Average" cooling rate to plot in degrees C / Myr', default=10.0,
+    parser.add_argument('--rate-min', dest='rate_min', help='Minimum cooling rate to plot in degrees C / Myr', default=0.1, type=float)
+    parser.add_argument('--rate-slow', dest='rate_slow', help='"Slow" cooling rate to plot in degrees C / Myr', default=1.0, type=float)
+    parser.add_argument('--rate-avg', dest='rate_avg', help='"Average" cooling rate to plot in degrees C / Myr', default=10.0,
                         type=float)
-    parser.add_argument('--rate_max', help='Maximum cooling rate to plot in degrees C / Myr', default=100.0, type=float)
-    parser.add_argument('--temp_max', help='Maximum temperature for cooling history in degrees C', default=250.0,
+    parser.add_argument('--rate-max', dest='rate_max', help='Maximum cooling rate to plot in degrees C / Myr', default=100.0, type=float)
+    parser.add_argument('--temp-max', dest='temp_max', help='Maximum temperature for cooling history in degrees C', default=250.0,
                         type=float)
-    parser.add_argument('--time_max', help='Maximum value for time on x-axis of plot in millions of years ago (Ma)',
+    parser.add_argument('--time-max', dest='time_max', help='Maximum value for time on x-axis of plot in millions of years ago (Ma)',
                         default=50.0,
                         type=float)
-    parser.add_argument('--save_plot', help='Save plot to file?', default=False, type=bool)
-    parser.add_argument('--show_plot', help='Display plot on the screen?', default=True, type=bool)
+    parser.add_argument('--save-plot', dest='save_plot', help='Save plot to file', action='store_true', default=False)
+    parser.add_argument('--no-display-plot', dest='no_display_plot', help='Do not display plot on the screen', action='store_true', default=False)
 
     args = parser.parse_args()
 
-    time_vs_temp(args.rate_min, args.rate_slow, args.rate_avg, args.rate_max, args.temp_max, args.time_max,
-                 args.save_plot, args.show_plot
+    # Flip command-line flag to be opposite for function call
+    # Function call expects display_plot = True for plot to be displayed
+    display_plot = not args.no_display_plot
+
+    time_vs_temp(rate_min=args.rate_min, rate_slow=args.rate_slow, rate_avg=args.rate_avg, rate_max=args.rate_max, temp_max=args.temp_max, time_max=args.time_max,
+                 save_plot=args.save_plot, display_plot=display_plot
                  )
 
 
