@@ -1,3 +1,4 @@
+# Compile codes for (U-Th)/He and FT age prediction
 cd c
 make; make install
 cd ..
