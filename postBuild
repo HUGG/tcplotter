@@ -1,7 +1,7 @@
 # Compile codes for (U-Th)/He and FT age prediction
-cd c
+cd src/c
 make; make install
-cd ..
-cd cpp
+cd ../..
+cd src/cpp
 make; make install
-cd ..
+cd ../..
