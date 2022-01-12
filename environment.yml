@@ -1,0 +1,8 @@
+name: thermochron-binder
+channels:
+  - conda-forge
+dependencies:
+  - matplotlib==3.5.1
+  - numpy==1.21.5
+  - scipy==1.7.3
+  - IPython==7.31.0
