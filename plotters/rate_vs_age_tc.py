@@ -18,10 +18,13 @@ def calc_eu(uranium, thorium):
 
 
 # Define function for creating plot of cooling rates
-def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u1=1.0, ap_u2=20.0, ap_u3=150.0, zr_u1=10.0, zr_u2=200.0, zr_u3=4000.0, ap_rad=45.0, zr_rad=60.0, ap_thorium=0.0, zr_thorium=0.0, ahe_uncertainty=0.1, aft_uncertainty=0.2, zhe_uncertainty=0.1, plot_type=3, save_plot=False, display_plot=True, verbose=False, use_widget=False):
+def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u1=1.0, ap_u2=20.0, ap_u3=150.0,
+                   zr_u1=10.0, zr_u2=200.0, zr_u3=4000.0, ap_rad=45.0, zr_rad=60.0, ap_thorium=0.0, zr_thorium=0.0,
+                   ahe_uncertainty=0.1, aft_uncertainty=0.2, zhe_uncertainty=0.1, plot_type=3, save_plot=False,
+                   plot_file_format='pdf', display_plot=True, verbose=False, use_widget=False):
     """
-    A script for calculating thermochronometer ages and closure temperatures for different cooling rates, effective
-    uranium concentrations, and equivalent spherical radii.
+    Calculates thermochronometer ages and closure temperatures for different cooling rates and effective uranium
+    concentrations.
 
     Parameters
     ----------
@@ -66,6 +69,8 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
         3 = Cooling rate versus age and closure temperature
     save_plot : bool, default=False
         Flag for whether to save the plot to a file.
+    plot_file_format : str, default='pdf'
+        File format for saving plot to file (examples: png, pdf, svg, eps).
     display_plot : bool, default=True
         Flag for whether to display the plot.
     verbose : bool, default=False
@@ -88,7 +93,6 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
 
     # Plotting flags and options
     dpi = 300
-    out_fmt = 'pdf'
 
     # Set plot style
     plt.style.use('seaborn-darkgrid')
@@ -364,7 +368,7 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
             os.makedirs('../plots')
 
         # Define plot filename and save plot
-        plot_filename = plot_filename + '_' + str(dpi) + 'dpi.' + out_fmt
+        plot_filename = plot_filename + '_' + str(dpi) + 'dpi.' + plot_file_format
         plt.savefig('../plots/' + plot_filename, dpi=dpi)
 
     # Show plot if requested
@@ -421,6 +425,9 @@ def main():
                         default=3, type=int)
     parser.add_argument('--save-plot', dest='save_plot', help='Save plot to file', action='store_true',
                         default=False)
+    parser.add_argument('--plot-file-format', dest='plot_file_format',
+                        help='File format for saving plot to file (examples: png, pdf, svg, eps)', default='pdf',
+                        type=str)
     parser.add_argument('--no-display-plot', dest='no_display_plot', help='Do not display plot on the screen',
                         action='store_true', default=False)
     parser.add_argument('-v', '--verbose', help='Enable verbose output', action='store_true', default=False)
@@ -431,7 +438,12 @@ def main():
     # Function call expects display_plot = True for plot to be displayed
     display_plot = not args.no_display_plot
 
-    rate_vs_age_tc(num_points=args.num_points, rate_min=args.rate_min, rate_max=args.rate_max, temp_max=args.temp_max, ap_u1=args.ap_u1, ap_u2=args.ap_u2, ap_u3=args.ap_u3, zr_u1=args.zr_u1, zr_u2=args.zr_u2, zr_u3=args.zr_u3, ap_rad=args.ap_rad, zr_rad=args.zr_rad, ap_thorium=args.ap_thorium, zr_thorium=args.zr_thorium, ahe_uncertainty=args.ahe_uncertainty, aft_uncertainty=args.aft_uncertainty, zhe_uncertainty=args.zhe_uncertainty, plot_type=args.plot_type, save_plot=args.save_plot, display_plot=display_plot, verbose=args.verbose, use_widget=False)
+    rate_vs_age_tc(num_points=args.num_points, rate_min=args.rate_min, rate_max=args.rate_max, temp_max=args.temp_max,
+                   ap_u1=args.ap_u1, ap_u2=args.ap_u2, ap_u3=args.ap_u3, zr_u1=args.zr_u1, zr_u2=args.zr_u2,
+                   zr_u3=args.zr_u3, ap_rad=args.ap_rad, zr_rad=args.zr_rad, ap_thorium=args.ap_thorium,
+                   zr_thorium=args.zr_thorium, ahe_uncertainty=args.ahe_uncertainty,
+                   aft_uncertainty=args.aft_uncertainty, zhe_uncertainty=args.zhe_uncertainty, plot_type=args.plot_type,
+                   save_plot=args.save_plot, plot_file_format=args.plot_file_format, display_plot=display_plot, verbose=args.verbose, use_widget=False)
 
 
 if __name__ == "__main__":

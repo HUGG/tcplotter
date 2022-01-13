@@ -10,7 +10,7 @@ import os
 
 # Define function for creating plot of cooling rates
 def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, temp_max=250.0, time_max=50.0,
-                 save_plot=False, display_plot=True,
+                 save_plot=False, plot_file_format='pdf', display_plot=True,
                  ):
     """
     Plots cooling rate lines for different input rates.
@@ -31,6 +31,8 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
         Maximum value for time on x-axis of plot in millions of years ago (Ma).
     save_plot : bool, default=False
         Flag for whether to save the plot to a file.
+    plot_file_format : str, default='pdf'
+        File format for saving plot to file (examples: png, pdf, svg, eps).
     display_plot : bool, default=True
         Flag for whether to display the plot.
 
@@ -42,7 +44,6 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
     # --- Plotting parameters ---------------------------------------------------- #
     # Plotting flags and options
     dpi = 300
-    out_fmt = 'pdf'
 
     # Set plot style
     plt.style.use('seaborn-whitegrid')
@@ -109,7 +110,7 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
             os.makedirs('../plots')
 
         # Set plot filename and save plot
-        plot_filename = 'time_vs_temp_' + str(dpi) + 'dpi.' + out_fmt
+        plot_filename = 'time_vs_temp_' + str(dpi) + 'dpi.' + plot_file_format
         plt.savefig('../plots/' + plot_filename, dpi=dpi)
 
     # Display plot if requested
@@ -137,6 +138,7 @@ def main():
                         default=50.0,
                         type=float)
     parser.add_argument('--save-plot', dest='save_plot', help='Save plot to file', action='store_true', default=False)
+    parser.add_argument('--plot-file-format', dest='plot_file_format', help='File format for saving plot to file (examples: png, pdf, svg, eps)', default='pdf', type=str)
     parser.add_argument('--no-display-plot', dest='no_display_plot', help='Do not display plot on the screen', action='store_true', default=False)
 
     args = parser.parse_args()
@@ -146,7 +148,7 @@ def main():
     display_plot = not args.no_display_plot
 
     time_vs_temp(rate_min=args.rate_min, rate_slow=args.rate_slow, rate_avg=args.rate_avg, rate_max=args.rate_max, temp_max=args.temp_max, time_max=args.time_max,
-                 save_plot=args.save_plot, display_plot=display_plot
+                 save_plot=args.save_plot, plot_file_format=args.plot_file_format, display_plot=display_plot
                  )
 
 

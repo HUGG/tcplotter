@@ -20,7 +20,7 @@ def calc_eu(uranium, thorium):
 def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, time_hist=[0.0, 10.0, 25.0],
                  temp_hist=[0.0, 200.0, 250.0], ap_u_min=1.0, ap_u_max=150.0, zr_u_min=1.0, zr_u_max=4000.0,
                  ap_rad_min=40.0, ap_rad_max=100.0, zr_rad_min=40.0, zr_rad_max=100.0, ap_thorium=0.0, zr_thorium=0.0,
-                 plot_type=3, save_plot=False, display_plot=True, tt_plot=False, verbose=False, use_widget=False):
+                 plot_type=3, save_plot=False, plot_file_format='pdf', display_plot=True, tt_plot=False, verbose=False, use_widget=False):
     """
     Calculates thermochronometer ages and closure temperatures for different effective uranium concentrations and
     equivalent spherical radii.
@@ -50,6 +50,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     temp_hist : list of floats or ints, default=[0.0, 200.0, 250.0]
         Temperature points defining cooling history in degrees C.
         NOTE: Present-day point should be first in list.
+    # End cooling history options
     ap_u_min : float, default=1.0
         Minimum apatite uranium concentration in ppm.
     ap_u_max : float, default=150.0
@@ -75,6 +76,8 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         1 = apatite, 2 = zircon, 3 = both
     save_plot : bool, default=False
         Flag for whether to save the plot to a file.
+    plot_file_format : str, default='pdf'
+        File format for saving plot(s) to file (examples: png, pdf, svg, eps).
     display_plot : bool, default=True
         Flag for whether to display the plot.
     tt_plot : bool, default=False
@@ -88,7 +91,6 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # --- Plotting parameters ---------------------------------------------------- #
     # Plotting flags and options
     dpi = 300
-    out_fmt = 'pdf'
 
     # Set file name prefix
     plot_filename = 'eu_vs_radius'
@@ -425,11 +427,11 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
         # Define plot filename based on type of plot and save plot
         if plot_type == 1:
-            plot_savename = plot_filename + '_apatite_' + str(dpi) + 'dpi.' + out_fmt
+            plot_savename = plot_filename + '_apatite_' + str(dpi) + 'dpi.' + plot_file_format
         elif plot_type == 2:
-            plot_savename = plot_filename + '_zircon_' + str(dpi) + 'dpi.' + out_fmt
+            plot_savename = plot_filename + '_zircon_' + str(dpi) + 'dpi.' + plot_file_format
         else:
-            plot_savename = plot_filename + '_apatite_zircon_' + str(dpi) + 'dpi.' + out_fmt
+            plot_savename = plot_filename + '_apatite_zircon_' + str(dpi) + 'dpi.' + plot_file_format
         plt.savefig('../plots/' + plot_savename, dpi=dpi)
 
     # Display plot if desired
@@ -465,7 +467,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         # Save plot if desired
         if save_plot:
             # Define plot filename and save plot
-            plot_savename2 = plot_filename + '_tT_history_' + str(dpi) + 'dpi.' + out_fmt
+            plot_savename2 = plot_filename + '_tT_history_' + str(dpi) + 'dpi.' + plot_file_format
             plt.savefig('../plots/' + plot_savename2, dpi=dpi)
 
         # Display plot if desired
@@ -516,6 +518,9 @@ def main():
     parser.add_argument('--plot-type', dest='plot_type', help='eU versus radius plot type. 1 = apatite, 2 = zircon, 3 = both.', default=3, type=int)
     parser.add_argument('--save-plot', dest='save_plot', help='Save plot(s) to file', action='store_true',
                         default=False)
+    parser.add_argument('--plot-file-format', dest='plot_file_format',
+                        help='File format for saving plot(s) to file (examples: png, pdf, svg, eps)', default='pdf',
+                        type=str)
     parser.add_argument('--no-display-plot', dest='no_display_plot', help='Do not display plots on the screen',
                         action='store_true', default=False)
     parser.add_argument('--tt-plot', dest='tt_plot', help='Create (and display) time-temperature history plot',
@@ -528,7 +533,13 @@ def main():
     # Function call expects display_plot = True for plot to be displayed
     display_plot = not args.no_display_plot
 
-    eu_vs_radius(num_points=args.num_points, cooling_hist_type=args.cooling_hist_type, temp_max=args.temp_max, rate=args.rate, time_hist=args.time_hist, temp_hist=args.temp_hist, ap_u_min=args.ap_u_min, ap_u_max=args.ap_u_max, zr_u_min=args.zr_u_min, zr_u_max=args.zr_u_max, ap_rad_min=args.ap_rad_min, ap_rad_max=args.ap_rad_max, zr_rad_min=args.zr_rad_min, zr_rad_max=args.zr_rad_max, ap_thorium=args.ap_thorium, zr_thorium=args.zr_thorium, plot_type=args.plot_type, save_plot=args.save_plot, display_plot=display_plot, tt_plot=args.tt_plot, verbose=args.verbose, use_widget=False)
+    eu_vs_radius(num_points=args.num_points, cooling_hist_type=args.cooling_hist_type, temp_max=args.temp_max,
+                 rate=args.rate, time_hist=args.time_hist, temp_hist=args.temp_hist, ap_u_min=args.ap_u_min,
+                 ap_u_max=args.ap_u_max, zr_u_min=args.zr_u_min, zr_u_max=args.zr_u_max, ap_rad_min=args.ap_rad_min,
+                 ap_rad_max=args.ap_rad_max, zr_rad_min=args.zr_rad_min, zr_rad_max=args.zr_rad_max,
+                 ap_thorium=args.ap_thorium, zr_thorium=args.zr_thorium, plot_type=args.plot_type,
+                 save_plot=args.save_plot, plot_file_format=args.plot_file_format, display_plot=display_plot,
+                 tt_plot=args.tt_plot, verbose=args.verbose, use_widget=False)
 
 
 if __name__ == "__main__":
