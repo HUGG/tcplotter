@@ -1,5 +1,11 @@
 # Code description and instructions for use
 
+The instructions below are out of date, and should be ignored for the time being. If you would like to test out plotting using this code you can do so using the Binder button below.
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/thermochron-plotters/HEAD)
+
+*Ignore everything below here...*
+
 The programs provided for use with this manuscript will allow you to reproduce and customize the plots for your use.
 This document provides some basic instructions for using the plotting programs, assuming you have some basic familiarity with using programming languages such as Python.
 
