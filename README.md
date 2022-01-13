@@ -2,7 +2,7 @@
 
 The instructions below are out of date, and should be ignored for the time being. If you would like to test out plotting using this code you can do so using the Binder button below.
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/thermochron-plotters/HEAD)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/thermochron-plotters/HEAD?urlpath=lab/tree/thermochron_plotter.ipynb)
 
 *Ignore everything below here...*
 
