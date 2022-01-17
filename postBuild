@@ -1,7 +1,7 @@
 # Compile codes for (U-Th)/He and FT age prediction
-cd src/c
+cd tcplotter/src/c
 make; make install
-cd ../..
-cd src/cpp
+cd ..
+cd cpp
 make; make install
-cd ../..
+cd ../../..
