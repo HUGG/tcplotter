@@ -1,4 +1,4 @@
-# $\mathrm{T_{c}plotter}$ code description and instructions for use
+# tcplotter code description and instructions for use
 
 The instructions below are out of date, and should be ignored for the time being. If you would like to test out plotting using this code you can do so using the Binder button below.
 
