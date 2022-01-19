@@ -14,6 +14,54 @@ def calc_eu(uranium, thorium):
     return uranium + 0.235 * thorium
 
 
+# Define function for reading sample data from a file
+def read_sample_data(fp):
+    """Reads sample data from a csv file.
+
+    Parameters
+    ----------
+    fp : str
+        File path to sample data csv file.
+
+    Returns
+    -------
+    sample_data : ndarray
+        NumPy array of sample data taken from the data file
+    """
+
+    # This function is a bit clumsy, but trying to avoid adding pandas as a dependency
+
+    # Read data file using NumPy
+    data = np.genfromtxt(fp, delimiter=",", filling_values=np.nan, dtype=str, skip_header=1)
+
+    # Create empty array for storing sample data
+    sample_data = np.empty((len(data), 10))
+    sample_data[:] = np.nan
+
+    # Parse sample data file into NumPy array
+    for i in range(len(data)):
+        if data[i, 0].lower() == "ahe":
+            sample_data[i, 0] = float(data[i, 1])
+            sample_data[i, 1] = float(data[i, 2])
+            sample_data[i, 2] = float(data[i, 3])
+            sample_data[i, 3] = float(data[i, 4])
+            #print("AHe age detected!")
+        elif data[i, 0].lower() == "aft":
+            sample_data[i, 4] = float(data[i, 1])
+            sample_data[i, 5] = float(data[i, 2])
+            #print("AFT age detected!")
+        elif data[i, 0].lower() == "zhe":
+            sample_data[i, 6] = float(data[i, 1])
+            sample_data[i, 7] = float(data[i, 2])
+            sample_data[i, 8] = float(data[i, 3])
+            sample_data[i, 9] = float(data[i, 4])
+            #print("ZHe age detected!")
+        else:
+            raise ValueError(f"Bad sample type '{data[i, 0]}' on sample data file line {i+1}. Must be either AHe, AFT, or ZHe.")
+
+    return sample_data
+
+
 # Define function for creating plot of cooling rates
 def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, temp_max=250.0, time_max=50.0,
                  save_plot=False, plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-whitegrid',
@@ -123,8 +171,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
                  ap_rad_min=40.0, ap_rad_max=100.0, zr_rad_min=40.0, zr_rad_max=100.0, ap_thorium=0.0, zr_thorium=0.0,
                  plot_type=3, save_plot=False, plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-colorblind',
                  plot_colormap='plasma', plot_alpha=1.0, plot_contour_lines=12, plot_contour_fills=256,
-                 display_plot=True,
-                 tt_plot=False, verbose=False, use_widget=False):
+                 display_plot=True, tt_plot=False, plot_sample_data=False, sample_data_file=None, verbose=False, use_widget=False):
     """
     Calculates thermochronometer ages and closure temperatures for different effective uranium concentrations and
     equivalent spherical radii.
@@ -369,6 +416,12 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Clean up Tt file
     os.remove(tt_file)
 
+    # Read sample data file, if requested
+    if plot_sample_data:
+        if sample_data_file == None:
+            raise ValueError("Sample file name must be defined using parameter sample_data_file.")
+        sample_data = read_sample_data(sample_data_file)
+
     # Apatite eU versus radius
     if plot_type == 1:
         # Create age contour lines
@@ -386,7 +439,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
         # Create closure temperature contour lines
         ap_contours_tc = ax[1].tricontour(ap_x_list, ap_y_list, ahe_tc_list, plot_contour_lines, linewidths=0.5,
-                                          colors='k')
+                                          colors='black')
         # Add closure temperature contour labels
         ax[1].clabel(ap_contours_tc, fmt='%1.1f')
         # Create closure temperature contour fill
@@ -396,6 +449,23 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
             c.set_edgecolor("face")
+
+        # Plot sample data, if loaded
+        if plot_sample_data:
+            x = sample_data[:,2]
+            y = sample_data[:,3]
+            colors = sample_data[:,0]
+            ax[0].scatter(x=x, y=y, c=colors, cmap=plot_colormap, vmin=min(ahe_age_list), vmax=max(ahe_age_list),
+                          edgecolors='black', zorder=2)
+            for i, label in enumerate(sample_data[:, 0]):
+                ax[0].annotate(label,
+                               (x[i], y[i]),
+                               textcoords = "offset points",
+                               xytext = (0, 10),
+                               ha = 'center',
+                               color='black',
+                               style='italic'
+                               )
 
     # Zircon eU versus radius
     elif plot_type == 2:
