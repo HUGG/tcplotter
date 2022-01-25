@@ -1,0 +1,11 @@
+numpydoc
+sphinx-book-theme
+nbsphinx
+ipython
+jupyter-book
+myst-parser
+myst-nb
+sphinx_copybutton
+sphinx
+sphinx-thebe
+sphinx-togglebutton
