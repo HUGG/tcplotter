@@ -5,6 +5,7 @@ import numpy as np
 import os
 from pathlib import Path
 from scipy.interpolate import interp1d
+import shutil
 import subprocess
 
 
@@ -12,6 +13,18 @@ import subprocess
 def calc_eu(uranium, thorium):
     """Calculates effective uranium concentration from U, Th inputs"""
     return uranium + 0.235 * thorium
+
+
+# Define function to find which version of the RDAAM_He/ketch_aft to use
+def get_tc_exec(command):
+    """Returns the location of the RDAAM_He or ketch_aft executable"""
+    if shutil.which(command) is not None:
+        tc_exec = command
+    elif Path("bin/"+command).is_file():
+        tc_exec = "bin/" + command
+    else:
+        raise FileNotFoundError(f"Age calculation program {command} not found. See Troubleshooting in tcplotter docs online.")
+    return tc_exec
 
 
 # Define function for creating plot of cooling rates
@@ -123,8 +136,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
                  ap_rad_min=40.0, ap_rad_max=100.0, zr_rad_min=40.0, zr_rad_max=100.0, ap_thorium=0.0, zr_thorium=0.0,
                  plot_type=3, save_plot=False, plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-colorblind',
                  plot_colormap='plasma', plot_alpha=1.0, plot_contour_lines=12, plot_contour_fills=256,
-                 display_plot=True,
-                 tt_plot=False, verbose=False, use_widget=False):
+                 display_plot=True, tt_plot=False, verbose=False, use_widget=False):
     """
     Calculates thermochronometer ages and closure temperatures for different effective uranium concentrations and
     equivalent spherical radii.
@@ -266,9 +278,8 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Define time-temperature history filename
     tt_file = 'simple_time_temp.txt'
 
-    # Check to make sure necessary age calculation executable(s) exist
-    if not Path('bin/RDAAM_He').is_file():
-        raise FileNotFoundError("Age calculation program bin/RDAAM_He not found. Did you compile and install it?")
+    # Get age calculation executable(s) to use
+    rdaam_command = get_tc_exec("RDAAM_He")
 
     # Set plot style
     plt.style.use(plot_style)
@@ -342,7 +353,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
             zr_y_list.append(zr_radius)
 
             # Calculate (U-Th)/He ages
-            command = 'bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
+            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -717,9 +728,8 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
     # Define time-temperature history filename
     tt_file = 'simple_time_temp.txt'
 
-    # Check to make sure necessary age calculation executable(s) exist
-    if not Path('bin/RDAAM_He').is_file():
-        raise FileNotFoundError("Age calculation program bin/RDAAM_He not found. Did you compile and install it?")
+    # Get age calculation executable(s) to use
+    rdaam_command = get_tc_exec("RDAAM_He")
 
     # Set plot style
     plt.style.use(plot_style)
@@ -803,7 +813,7 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
                     f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
 
             # Calculate (U-Th)/He ages
-            command = 'bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
+            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -860,7 +870,7 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
                     f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
 
             # Calculate (U-Th)/He ages
-            command = 'bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
+            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -1228,11 +1238,9 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
     # Define time-temperature history filename
     tt_file = 'simple_time_temp.txt'
 
-    # Check to make sure necessary age calculation executable(s) exist
-    if not Path('bin/RDAAM_He').is_file():
-        raise FileNotFoundError("Age calculation program bin/RDAAM_He not found. Did you compile and install it?")
-    if not Path('bin/ketch_aft').is_file():
-        raise FileNotFoundError("Age calculation program bin/ketch_aft not found. Did you compile and install it?")
+    # Get age calculation executable(s) to use
+    rdaam_command = get_tc_exec("RDAAM_He")
+    ketch_command = get_tc_exec("ketch_aft")
 
     # Calculate total number of models that will be run
     total_models = len(ap_u_list) * len(rates)
@@ -1298,7 +1306,7 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
                 f.write('{0:.4f},{1:.1f}'.format(start_time, temp_max))
 
             # Calculate He ages
-            command = 'bin/RDAAM_He ' + tt_file + ' ' + str(ap_rad) + ' ' + str(ap_uranium) + ' ' + str(
+            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_rad) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_rad) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -1308,7 +1316,7 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
             corr_zhe_age = stdout[1].split()[7].decode('UTF-8')
 
             # Calculate AFT age
-            command = 'bin/ketch_aft ' + tt_file
+            command = ketch_command + ' ' + tt_file
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
             # Parse output for AFT age
