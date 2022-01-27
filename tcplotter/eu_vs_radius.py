@@ -63,6 +63,8 @@ def main():
                         action='store_true', default=False)
     parser.add_argument('--tt-plot', dest='tt_plot', help='Create (and display) time-temperature history plot',
                         action='store_true', default=False)
+    parser.add_argument('--plot-sample-data', dest='plot_sample_data', help='', action='store_true', default=False)
+    parser.add_argument('--sample-data-file', dest='sample_data_file', help='', default=None, type=str)
     parser.add_argument('-v', '--verbose', help='Enable verbose output', action='store_true', default=False)
 
     args = parser.parse_args()
@@ -79,7 +81,8 @@ def main():
                  save_plot=args.save_plot, plot_file_format=args.plot_file_format, plot_dpi=args.plot_dpi,
                  plot_style=args.plot_style, plot_colormap=args.plot_colormap, plot_alpha=args.plot_alpha,
                  plot_contour_lines=args.plot_contour_lines, plot_contour_fills=args.plot_contour_fills,
-                 display_plot=display_plot, tt_plot=args.tt_plot, verbose=args.verbose, use_widget=False)
+                 display_plot=display_plot, tt_plot=args.tt_plot, plot_sample_data=args.plot_sample_data,
+                 sample_data_file=args.sample_data_file, verbose=args.verbose, use_widget=False)
 
 
 if __name__ == "__main__":

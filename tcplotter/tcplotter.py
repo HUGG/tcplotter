@@ -397,7 +397,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
         # Create closure temperature contour lines
         ap_contours_tc = ax[1].tricontour(ap_x_list, ap_y_list, ahe_tc_list, plot_contour_lines, linewidths=0.5,
-                                          colors='k')
+                                          colors='black')
         # Add closure temperature contour labels
         ax[1].clabel(ap_contours_tc, fmt='%1.1f')
         # Create closure temperature contour fill
