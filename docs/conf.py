@@ -21,7 +21,6 @@ project = 'tcplotter'
 copyright = '2022, David Whipp'
 author = 'David Whipp'
 
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -29,7 +28,7 @@ author = 'David Whipp'
 # ones.
 extensions = [
     #"sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
+    #"sphinx.ext.napoleon",
     "IPython.sphinxext.ipython_console_highlighting",
     "IPython.sphinxext.ipython_directive",
     "myst_nb",
