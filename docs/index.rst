@@ -19,6 +19,7 @@ T\ :sub:`c`\ plotter is a Python package for creating and customizing thermochro
    :maxdepth: 2
    :caption: Contents:
 
+   reference
 
 
 Indices and tables
