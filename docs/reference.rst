@@ -4,3 +4,9 @@ Reference
 =========
 
 .. autofunction:: tcplotter.time_vs_temp
+
+.. autofunction:: tcplotter.eu_vs_radius
+
+.. autofunction:: tcplotter.rate_vs_radius_eu
+
+.. autofunction:: tcplotter.rate_vs_age_tc
