@@ -3,8 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to tcplotter's documentation!
+T\ :sub:`c`\ plotter
 =====================================
+
+T\ :sub:`c`\ plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots from the article "Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers" by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
+
+.. figure:: img/figure2-example.png
+   :scale: 50 %
+   :alt: Example tcplotter figure
+   :align: center
+
+   An example plot created using T\ :sub:`c`\ plotter.
 
 .. toctree::
    :maxdepth: 2
