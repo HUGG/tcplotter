@@ -29,9 +29,9 @@ author = 'David Whipp'
 extensions = [
     #"sphinx.ext.autodoc",
     #"sphinx.ext.napoleon",
-    "IPython.sphinxext.ipython_console_highlighting",
-    "IPython.sphinxext.ipython_directive",
-    "myst_nb",
+    #"IPython.sphinxext.ipython_console_highlighting",
+    #"IPython.sphinxext.ipython_directive",
+    #"myst_nb",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
