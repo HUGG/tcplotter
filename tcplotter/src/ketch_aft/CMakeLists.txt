@@ -5,3 +5,6 @@ project(ketch_aft)
 
 # add the executable
 add_executable(ketch_aft ketch.c ketch_aft.c)
+
+# add math library for build
+target_link_libraries(ketch_aft PRIVATE m)

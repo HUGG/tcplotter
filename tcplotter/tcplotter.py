@@ -5,6 +5,7 @@ import numpy as np
 import os
 from pathlib import Path
 from scipy.interpolate import interp1d
+import shutil
 import subprocess
 
 
@@ -14,52 +15,16 @@ def calc_eu(uranium, thorium):
     return uranium + 0.235 * thorium
 
 
-# Define function for reading sample data from a file
-def read_sample_data(fp):
-    """Reads sample data from a csv file.
-
-    Parameters
-    ----------
-    fp : str
-        File path to sample data csv file.
-
-    Returns
-    -------
-    sample_data : ndarray
-        NumPy array of sample data taken from the data file
-    """
-
-    # This function is a bit clumsy, but trying to avoid adding pandas as a dependency
-
-    # Read data file using NumPy
-    data = np.genfromtxt(fp, delimiter=",", filling_values=np.nan, dtype=str, skip_header=1)
-
-    # Create empty array for storing sample data
-    sample_data = np.empty((len(data), 10))
-    sample_data[:] = np.nan
-
-    # Parse sample data file into NumPy array
-    for i in range(len(data)):
-        if data[i, 0].lower() == "ahe":
-            sample_data[i, 0] = float(data[i, 1])
-            sample_data[i, 1] = float(data[i, 2])
-            sample_data[i, 2] = float(data[i, 3])
-            sample_data[i, 3] = float(data[i, 4])
-            #print("AHe age detected!")
-        elif data[i, 0].lower() == "aft":
-            sample_data[i, 4] = float(data[i, 1])
-            sample_data[i, 5] = float(data[i, 2])
-            #print("AFT age detected!")
-        elif data[i, 0].lower() == "zhe":
-            sample_data[i, 6] = float(data[i, 1])
-            sample_data[i, 7] = float(data[i, 2])
-            sample_data[i, 8] = float(data[i, 3])
-            sample_data[i, 9] = float(data[i, 4])
-            #print("ZHe age detected!")
-        else:
-            raise ValueError(f"Bad sample type '{data[i, 0]}' on sample data file line {i+1}. Must be either AHe, AFT, or ZHe.")
-
-    return sample_data
+# Define function to find which version of the RDAAM_He/ketch_aft to use
+def get_tc_exec(command):
+    """Returns the location of the RDAAM_He or ketch_aft executable"""
+    if shutil.which(command) is not None:
+        tc_exec = command
+    elif Path("bin/"+command).is_file():
+        tc_exec = "bin/" + command
+    else:
+        raise FileNotFoundError(f"Age calculation program {command} not found. See Troubleshooting in tcplotter docs online.")
+    return tc_exec
 
 
 # Define function for creating plot of cooling rates
@@ -171,7 +136,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
                  ap_rad_min=40.0, ap_rad_max=100.0, zr_rad_min=40.0, zr_rad_max=100.0, ap_thorium=0.0, zr_thorium=0.0,
                  plot_type=3, save_plot=False, plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-colorblind',
                  plot_colormap='plasma', plot_alpha=1.0, plot_contour_lines=12, plot_contour_fills=256,
-                 display_plot=True, tt_plot=False, plot_sample_data=False, sample_data_file=None, verbose=False, use_widget=False):
+                 display_plot=True, tt_plot=False, verbose=False, use_widget=False):
     """
     Calculates thermochronometer ages and closure temperatures for different effective uranium concentrations and
     equivalent spherical radii.
@@ -313,9 +278,8 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Define time-temperature history filename
     tt_file = 'simple_time_temp.txt'
 
-    # Check to make sure necessary age calculation executable(s) exist
-    if not Path('bin/RDAAM_He').is_file():
-        raise FileNotFoundError("Age calculation program bin/RDAAM_He not found. Did you compile and install it?")
+    # Get age calculation executable(s) to use
+    rdaam_command = get_tc_exec("RDAAM_He")
 
     # Set plot style
     plt.style.use(plot_style)
@@ -389,7 +353,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
             zr_y_list.append(zr_radius)
 
             # Calculate (U-Th)/He ages
-            command = 'bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
+            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -415,12 +379,6 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
     # Clean up Tt file
     os.remove(tt_file)
-
-    # Read sample data file, if requested
-    if plot_sample_data:
-        if sample_data_file == None:
-            raise ValueError("Sample file name must be defined using parameter sample_data_file.")
-        sample_data = read_sample_data(sample_data_file)
 
     # Apatite eU versus radius
     if plot_type == 1:
@@ -449,23 +407,6 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
             c.set_edgecolor("face")
-
-        # Plot sample data, if loaded
-        if plot_sample_data:
-            x = sample_data[:,2]
-            y = sample_data[:,3]
-            colors = sample_data[:,0]
-            ax[0].scatter(x=x, y=y, c=colors, cmap=plot_colormap, vmin=min(ahe_age_list), vmax=max(ahe_age_list),
-                          edgecolors='black', zorder=2)
-            for i, label in enumerate(sample_data[:, 0]):
-                ax[0].annotate(label,
-                               (x[i], y[i]),
-                               textcoords = "offset points",
-                               xytext = (0, 10),
-                               ha = 'center',
-                               color='black',
-                               style='italic'
-                               )
 
     # Zircon eU versus radius
     elif plot_type == 2:
@@ -787,9 +728,8 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
     # Define time-temperature history filename
     tt_file = 'simple_time_temp.txt'
 
-    # Check to make sure necessary age calculation executable(s) exist
-    if not Path('bin/RDAAM_He').is_file():
-        raise FileNotFoundError("Age calculation program bin/RDAAM_He not found. Did you compile and install it?")
+    # Get age calculation executable(s) to use
+    rdaam_command = get_tc_exec("RDAAM_He")
 
     # Set plot style
     plt.style.use(plot_style)
@@ -873,7 +813,7 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
                     f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
 
             # Calculate (U-Th)/He ages
-            command = 'bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
+            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -930,7 +870,7 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
                     f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
 
             # Calculate (U-Th)/He ages
-            command = 'bin/RDAAM_He ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
+            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -1298,11 +1238,9 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
     # Define time-temperature history filename
     tt_file = 'simple_time_temp.txt'
 
-    # Check to make sure necessary age calculation executable(s) exist
-    if not Path('bin/RDAAM_He').is_file():
-        raise FileNotFoundError("Age calculation program bin/RDAAM_He not found. Did you compile and install it?")
-    if not Path('bin/ketch_aft').is_file():
-        raise FileNotFoundError("Age calculation program bin/ketch_aft not found. Did you compile and install it?")
+    # Get age calculation executable(s) to use
+    rdaam_command = get_tc_exec("RDAAM_He")
+    ketch_command = get_tc_exec("ketch_aft")
 
     # Calculate total number of models that will be run
     total_models = len(ap_u_list) * len(rates)
@@ -1368,7 +1306,7 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
                 f.write('{0:.4f},{1:.1f}'.format(start_time, temp_max))
 
             # Calculate He ages
-            command = 'bin/RDAAM_He ' + tt_file + ' ' + str(ap_rad) + ' ' + str(ap_uranium) + ' ' + str(
+            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_rad) + ' ' + str(ap_uranium) + ' ' + str(
                 ap_thorium) + ' ' + str(zr_rad) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -1378,7 +1316,7 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
             corr_zhe_age = stdout[1].split()[7].decode('UTF-8')
 
             # Calculate AFT age
-            command = 'bin/ketch_aft ' + tt_file
+            command = ketch_command + ' ' + tt_file
             p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
             # Parse output for AFT age
