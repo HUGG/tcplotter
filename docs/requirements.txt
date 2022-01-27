@@ -1,4 +1,4 @@
-#numpydoc
+numpydoc
 sphinx-book-theme
 nbsphinx
 ipython

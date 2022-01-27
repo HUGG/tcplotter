@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'tcplotter'
-copyright = '2022, David Whipp'
+copyright = '2022, David Whipp, University of Helsinki'
 author = 'David Whipp'
 
 # -- General configuration ---------------------------------------------------
@@ -27,8 +27,8 @@ author = 'David Whipp'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    #"sphinx.ext.autodoc",
-    #"sphinx.ext.napoleon",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
     "IPython.sphinxext.ipython_console_highlighting",
     "IPython.sphinxext.ipython_directive",
     "myst_nb",
