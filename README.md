@@ -1,8 +1,23 @@
 # T<sub>c</sub>plotter code description and instructions for use
 
-The instructions below are out of date, and should be ignored for the time being. If you would like to test out plotting using this code you can do so using the Binder button below.
-
+[![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest) 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/tcplotter.ipynb)
+
+The instructions below are actively being written. If you would like to test out plotting using this code you can do so using the Binder button above.
+
+## Installation
+
+The easiest option for installing the T<sub>c</sub>plotter plotter package is to install it using conda.
+
+```bash
+conda install -c conda-forge tcplotter
+```
+
+### Installing the latest version from GitHub
+
+If you prefer to install the latest version of the T<sub>c</sub>plotter package from GitHub or to manually install without conda, the process is slightly more involved. First, you can download the software from the [tcplotter GitHub page](https://github.com/HUGG/tcplotter)
+
+Installati
 
 *Ignore everything below here...*
 
