@@ -11,10 +11,3 @@ Plotting functions in tcplotter
 .. autofunction:: tcplotter.rate_vs_radius_eu
 
 .. autofunction:: tcplotter.rate_vs_age_tc
-
-Other available functions
--------------------------
-
-.. autofunction:: tcplotter.calc_eu
-
-.. autofunction:: tcplotter.get_tc_exec    
