@@ -154,19 +154,18 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         1 = constant cooling rate (specify rate as parameter rate)
         2 = list of time-temperature points (fill in lists as parameters
         time_hist, temp_hist)
-    # Options for cooling history type 1
     temp_max : float, default=250.0
-        Max temperature for cooling history (in degrees C).
+        Max temperature for cooling history (in degrees C). Option only for cooling history type 1.
     rate : float, default=10.0
-        Cooling rate in degrees C per Myr.
-    # Options for cooling history type 2
+        Cooling rate in degrees C per Myr. Option only for cooling history type 1.
     time_hist : list of floats or ints, default=[0.0, 10.0, 25.0]
         Time points defining cooling history in Ma (millions of years ago).
         NOTE: Present-day point should be first in list.
+        Option only for cooling history type 2.
     temp_hist : list of floats or ints, default=[0.0, 200.0, 250.0]
         Temperature points defining cooling history in degrees C.
         NOTE: Present-day point should be first in list.
-    # End cooling history options
+        Option only for cooling history type 2.
     ap_u_min : float, default=1.0
         Minimum apatite uranium concentration in ppm.
     ap_u_max : float, default=150.0
