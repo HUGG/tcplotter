@@ -17,7 +17,13 @@ T\ :sub:`c`\ plotter is a Python package for creating and customizing thermochro
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Using tcplotter
+
+   installation.ipynb
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
 
    reference
 
