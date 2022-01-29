@@ -1,23 +1,57 @@
 # T<sub>c</sub>plotter code description and instructions for use
 
-[![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest) 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/tcplotter.ipynb)
+[![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest) 
 
 The instructions below are actively being written. If you would like to test out plotting using this code you can do so using the Binder button above.
 
 ## Installation
 
-The easiest option for installing the T<sub>c</sub>plotter plotter package is to install it using conda.
+The easiest option for installing the tcplotter package is to install it using conda.
 
 ```bash
 conda install -c conda-forge tcplotter
 ```
 
+This will install tcplotter and all required Python dependencies (see list below).
+
+### Optional graphical progress bar
+
+It is possible to enable a graphical progress bar with tcplotter when using it in a Jupyter notebook. This requires the [ipywidgets library](https://ipywidgets.readthedocs.io/). ipywidgets can also be installed using conda.
+
+```bash
+conda install -c conda-forge ipywidgets
+```
+
 ### Installing the latest version from GitHub
 
-If you prefer to install the latest version of the T<sub>c</sub>plotter package from GitHub or to manually install without conda, the process is slightly more involved. First, you can download the software from the [tcplotter GitHub page](https://github.com/HUGG/tcplotter)
+If you prefer to install the latest version of the T<sub>c</sub>plotter package from GitHub or to manually install without conda, the process is slightly more involved.
+
+First, you will need the several items in order to compile the software used for thermochronometer age and closure temperature calculations.
+
+- [cmake](https://cmake.org/)
+- a compatible C compiler
+- a compatible C++ compiler
+
+You can find more information about which compilers are able to be used with cmake from the [cmake documentation page](https://cmake.org/documentation/).
+
+In addition, tcplotter requires on the following Python libraries.
+
+- numpy
+- matplotlib-base
+- scipy
+
+Once the required ...
+
+First, you can download the software from the [tcplotter GitHub page](https://github.com/HUGG/tcplotter) by clicking on the **Code** button and then selecting **Download ZIP**. Unzip the 
 
 Installati
+
+## Usage
+
+## Attribution
+
+## License
 
 *Ignore everything below here...*
 
