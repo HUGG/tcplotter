@@ -16,12 +16,14 @@ def main():
                              'calculated. NOTE: A value of num_points = 101 was used in the manuscript. It has '
                              'been reduced here to make the plotting faster. Set this to 101 to reproduce '
                              'the manuscript Figure 4.', default=21, type=int)
-    parser.add_argument('--rate-min', dest='rate_min', help='Minimum cooling rate in degrees C per Myr.', default=0.1,
+    parser.add_argument('--cooling-rate-min', dest='cooling_rate_min',
+                        help='Minimum cooling rate in degrees C per Myr.', default=0.1,
                         type=float)
-    parser.add_argument('--rate-max', dest='rate_max', help='Maximum cooling rate in degrees C per Myr.', default=100.0,
+    parser.add_argument('--cooling-rate-max', dest='cooling_rate_max',
+                        help='Maximum cooling rate in degrees C per Myr.', default=100.0,
                         type=float)
     parser.add_argument('--temp-max', dest='temp_max', help='Max temperature for cooling history (in degrees C).',
-                        default=250.0,
+                        default=350.0,
                         type=float)
     parser.add_argument('--ap-u-min', dest='ap_u_min', help='Minimum apatite uranium concentration in ppm', default=1.0,
                         type=float)
@@ -33,7 +35,7 @@ def main():
     parser.add_argument('--zr-u-min', dest='zr_u_min', help='Minimum zircon uranium concentration in ppm', default=1.0,
                         type=float)
     parser.add_argument('--zr-u-max', dest='zr_u_max', help='Maximum zircon uranium concentration in ppm',
-                        default=1500.0, type=float)
+                        default=4000.0, type=float)
     parser.add_argument('--zr-u-ref', dest='zr_u_ref',
                         help='Zircon uranium concentration in ppm for rate versus radius plot',
                         default=100.0, type=float)
@@ -98,7 +100,7 @@ def main():
     # Function call expects display_plot = True for plot to be displayed
     display_plot = not args.no_display_plot
 
-    rate_vs_radius_eu(num_points=args.num_points, rate_min=args.rate_min, rate_max=args.rate_max,
+    rate_vs_radius_eu(num_points=args.num_points, cooling_rate_min=args.cooling_rate_min, cooling_rate_max=args.cooling_rate_max,
                       temp_max=args.temp_max,
                       ap_u_min=args.ap_u_min, ap_u_max=args.ap_u_max, ap_u_ref=args.ap_u_ref, zr_u_min=args.zr_u_min,
                       zr_u_max=args.zr_u_max, zr_u_ref=args.zr_u_ref,

@@ -28,7 +28,7 @@ def get_tc_exec(command):
 
 
 # Define function for creating plot of cooling rates
-def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, temp_max=250.0, time_max=50.0,
+def time_vs_temp(cooling_rate_min=0.1, cooling_rate_slow=1.0, cooling_rate_avg=10.0, cooling_rate_max=100.0, temp_max=350.0, time_max=50.0,
                  save_plot=False, plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-whitegrid',
                  display_plot=True,
                  ):
@@ -37,15 +37,15 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
 
     Parameters
     ----------
-    rate_min : float or int, default=0.1
+    cooling_rate_min : float or int, default=0.1
         Minimum cooling rate to plot in degrees C / Myr.
-    rate_slow : float or int, default=1.0
+    cooling_rate_slow : float or int, default=1.0
         "Slow" cooling rate to plot in degrees C / Myr.
-    rate_avg : float or int, default=10.0
+    cooling_rate_avg : float or int, default=10.0
         "Average" cooling rate to plot in degrees C / Myr.
-    rate_max : float or int, default=100.0
+    cooling_rate_max : float or int, default=100.0
         Maximum cooling rate to plot in degrees C / Myr.
-    temp_max : float or int, default=250.0
+    temp_max : float or int, default=350.0
         Maximum temperature for cooling history in degrees C.
     time_max : float or int, default=50.0
         Maximum value for time on x-axis of plot in millions of years ago (Ma).
@@ -72,13 +72,13 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
     os.chdir(dir_name)
 
     # Create arrays of points to plot
-    min_rate_x = np.array([temp_max / rate_min, 0.0])
+    min_rate_x = np.array([temp_max / cooling_rate_min, 0.0])
     min_rate_y = np.array([temp_max, 0.0])
-    slow_rate_x = np.array([temp_max / rate_slow, 0.0])
+    slow_rate_x = np.array([temp_max / cooling_rate_slow, 0.0])
     slow_rate_y = np.array([temp_max, 0.0])
-    avg_rate_x = np.array([temp_max / rate_avg, 0.0])
+    avg_rate_x = np.array([temp_max / cooling_rate_avg, 0.0])
     avg_rate_y = np.array([temp_max, 0.0])
-    max_rate_x = np.array([temp_max / rate_max, 0.0])
+    max_rate_x = np.array([temp_max / cooling_rate_max, 0.0])
     max_rate_y = np.array([temp_max, 0.0])
 
     # Set plot style
@@ -131,7 +131,7 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
 
 
 # Define function for making contour plot of cooling ages and closure temperatures
-def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, time_hist=[0.0, 10.0, 25.0],
+def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=350.0, cooling_rate=10.0, time_hist=[0.0, 10.0, 25.0],
                  temp_hist=[0.0, 200.0, 250.0], ap_u_min=1.0, ap_u_max=150.0, zr_u_min=1.0, zr_u_max=4000.0,
                  ap_rad_min=40.0, ap_rad_max=100.0, zr_rad_min=40.0, zr_rad_max=100.0, ap_thorium=0.0, zr_thorium=0.0,
                  plot_type=3, save_plot=False, plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-colorblind',
@@ -154,9 +154,9 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         1 = constant cooling rate (specify rate as parameter rate)
         2 = list of time-temperature points (fill in lists as parameters
         time_hist, temp_hist)
-    temp_max : float, default=250.0
+    temp_max : float, default=350.0
         Max temperature for cooling history (in degrees C). Option only for cooling history type 1.
-    rate : float, default=10.0
+    cooling_rate : float, default=10.0
         Cooling rate in degrees C per Myr. Option only for cooling history type 1.
     time_hist : list of floats or ints, default=[0.0, 10.0, 25.0]
         Time points defining cooling history in Ma (millions of years ago).
@@ -172,7 +172,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         Maximum apatite uranium concentration in ppm.
     zr_u_min : float, default=1.0
         Minimum zircon uranium concentration in ppm.
-    zr_u_max : float, default=1500.0
+    zr_u_max : float, default=4000.0
         Maximum zircon uranium concentration in ppm.
     ap_rad_min : float, default=40.0
         Minimum apatite equivalent spherical grain radius in micrometers.
@@ -237,7 +237,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Define cooling history using constant cooling rate
     if cooling_hist_type == 1:
         # Define time and temperature histories
-        start_time = temp_max / rate
+        start_time = temp_max / cooling_rate
         time_hist = [0.0, start_time]
         temp_hist = [0.0, temp_max]
 
@@ -313,7 +313,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Echo total model run time and cooling rate
     if verbose and cooling_hist_type == 1:
         print(
-            f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
+            f'Cooling from {temp_max:.1f}°C at a rate of {cooling_rate:.1f} °C/Myr will require {start_time:.2f} million years')
 
     # Create visual progress bar, if enabled
     if use_widget:
@@ -592,7 +592,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
 
 # Define function for creating plot of cooling rates
-def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u_min=1.0, ap_u_max=150.0,
+def rate_vs_radius_eu(num_points=21, cooling_rate_min=0.1, cooling_rate_max=100.0, temp_max=350.0, ap_u_min=1.0, ap_u_max=150.0,
                       ap_u_ref=10.0,
                       zr_u_min=1.0, zr_u_max=4000.0, zr_u_ref=100.0, ap_rad_min=40.0, ap_rad_max=100.0, ap_rad_ref=45.0,
                       zr_rad_min=40.0, zr_rad_max=100.0, zr_rad_ref=60.0, ap_thorium=0.0, zr_thorium=0.0, plot_type=3,
@@ -611,11 +611,11 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
         NOTE: A value of num_points = 101 was used in the manuscript. It has been
         reduced here to make the plotting faster. Set this to 101 to reproduce
         the manuscript Figure 4.
-    rate_min : float, default=0.1
+    cooling_rate_min : float, default=0.1
         Minimum cooling rate in degrees C per Myr.
-    rate_max : float, default=100.0
+    cooling_rate_max : float, default=100.0
         Maximum cooling rate in degrees C per Myr.
-    temp_max : float, default=250.0
+    temp_max : float, default=350.0
         Max temperature for cooling history (in degrees C).
     ap_u_min : float, default=1.0
         Minimum apatite uranium concentration in ppm.
@@ -625,7 +625,7 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
         Apatite uranium concentration in ppm for rate versus radius plot.
     zr_u_min : float, default=1.0
         Minimum zircon uranium concentration in ppm.
-    zr_u_max : float, default=1500.0
+    zr_u_max : float, default=4000.0
         Maximum zircon uranium concentration in ppm.
     zr_u_ref : float, default=100.0
         Zircon uranium concentration in ppm for rate versus radius plot.
@@ -705,7 +705,7 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
     zr_rad = np.linspace(zr_rad_min, zr_rad_max, num_points)
 
     # Create cooling rate array
-    rates = np.logspace(start=np.log10(rate_min), stop=np.log10(rate_max), num=num_points)
+    rates = np.logspace(start=np.log10(cooling_rate_min), stop=np.log10(cooling_rate_max), num=num_points)
 
     # Calculate effective uranium
     ap_eu = calc_eu(ap_u, ap_thorium)
@@ -1109,7 +1109,7 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
 
 # Define function for creating plot of cooling rates
-def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u1=1.0, ap_u2=20.0, ap_u3=150.0,
+def rate_vs_age_tc(num_points=101, cooling_rate_min=0.1, cooling_rate_max=100.0, temp_max=350.0, ap_u1=1.0, ap_u2=20.0, ap_u3=150.0,
                    zr_u1=10.0, zr_u2=200.0, zr_u3=4000.0, ap_rad=45.0, zr_rad=60.0, ap_thorium=0.0, zr_thorium=0.0,
                    ahe_uncertainty=0.1, aft_uncertainty=0.2, zhe_uncertainty=0.1, plot_type=3, plot_age_min=0.5,
                    plot_age_max=1800.0, plot_tc_min=0.0, plot_tc_max=200.0, save_plot=False,
@@ -1124,11 +1124,11 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
     num_points : int, default=101
         Number of points along x and y axes where ages/closure temperatures are
         calculated.
-    rate_min : float, default=0.1
+    cooling_rate_min : float, default=0.1
         Minimum cooling rate in degrees C per Myr.
-    rate_max : float, default=100.0
+    cooling_rate_max : float, default=100.0
         Maximum cooling rate in degrees C per Myr.
-    temp_max : float, default=250.0
+    temp_max : float, default=350.0
         Max temperature for cooling history (in degrees C).
     ap_u1 : float, default=1.0
         Apatite uranium concentration in ppm for upper plot panel.
@@ -1227,7 +1227,7 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
         raise ValueError('Bad value for plot_type. Must be 1, 2, or 3.')
 
     # Define cooling rates to consider
-    rates = np.logspace(start=np.log10(rate_min), stop=np.log10(rate_max), num=num_points)
+    rates = np.logspace(start=np.log10(cooling_rate_min), stop=np.log10(cooling_rate_max), num=num_points)
 
     # Plot titles
     title_list = [f'Low eU (ap={ap_u_list[0]:.1f}, zr={zr_u_list[0]:.1f} ppm)',
@@ -1404,7 +1404,7 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
 
         # Set axis range and add axis labels
         if plot_type == 1:
-            ax[i].set_xlim([rate_min, rate_max])
+            ax[i].set_xlim([cooling_rate_min, cooling_rate_max])
             ax[i].set_ylim([plot_tc_min, plot_tc_max])
             ax[i].set_ylabel('Closure temperature (°C)')
             if i == 2:
@@ -1412,7 +1412,7 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
 
         # Set axis range and add axis labels
         if plot_type == 2:
-            ax[i].set_xlim([rate_min, rate_max])
+            ax[i].set_xlim([cooling_rate_min, cooling_rate_max])
             ax[i].set_ylim([plot_age_min, plot_age_max])
             ax[i].set_ylabel('Age (Ma)')
             if i == 2:
@@ -1420,9 +1420,9 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
 
         # Set axis ranges and add axis labels
         if plot_type == 3:
-            ax[i][0].set_xlim([rate_min, rate_max])
+            ax[i][0].set_xlim([cooling_rate_min, cooling_rate_max])
             ax[i][0].set_ylim([plot_age_min, plot_age_max])
-            ax[i][1].set_xlim([rate_min, rate_max])
+            ax[i][1].set_xlim([cooling_rate_min, cooling_rate_max])
             ax[i][1].set_ylim([plot_tc_min, plot_tc_max])
             ax[i][0].set_ylabel('Age (Ma)')
             ax[i][1].set_ylabel('Closure temperature (°C)')

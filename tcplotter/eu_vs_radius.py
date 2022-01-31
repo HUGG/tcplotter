@@ -20,9 +20,9 @@ def main():
                              'list of time-temperature points (fill in lists as parameters time_hist, temp_hist).',
                         default=1, type=int)
     parser.add_argument('--temp-max', dest='temp_max', help='Max temperature for cooling history (in degrees C). Option for cooling '
-                                           'history type 1.', default=250.0,
+                                           'history type 1.', default=350.0,
                         type=float)
-    parser.add_argument('--rate', help='Cooling rate in degrees C per Myr. Option for cooling history type 1.', default=10.0, type=float)
+    parser.add_argument('--cooling-rate', dest='cooling_rate', help='Cooling rate in degrees C per Myr. Option for cooling history type 1.', default=10.0, type=float)
     parser.add_argument('--time-hist', dest='time_hist', help='Time points defining cooling history in Ma (millions of years ago). '
                                             'NOTE: Present-day point should be first in list. Option for cooling '
                                             'history type 2.', nargs='+', default=[0.0, 10.0, 25.0],
@@ -34,7 +34,7 @@ def main():
     parser.add_argument('--ap-u-min', dest='ap_u_min', help='Minimum apatite uranium concentration in ppm', default=1.0, type=float)
     parser.add_argument('--ap-u-max', dest='ap_u_max', help='Maximum apatite uranium concentration in ppm', default=150.0, type=float)
     parser.add_argument('--zr-u-min', dest='zr_u_min', help='Minimum zircon uranium concentration in ppm', default=1.0, type=float)
-    parser.add_argument('--zr-u-max', dest='zr_u_max', help='Maximum zircon uranium concentration in ppm', default=1500.0, type=float)
+    parser.add_argument('--zr-u-max', dest='zr_u_max', help='Maximum zircon uranium concentration in ppm', default=4000.0, type=float)
     parser.add_argument('--ap-rad-min', dest='ap_rad_min', help='Minimum apatite equivalent spherical grain radius in micrometers', default=40.0, type=float)
     parser.add_argument('--ap-rad-max', dest='ap_rad_max', help='Maximum apatite equivalent spherical grain radius in micrometers', default=100.0, type=float)
     parser.add_argument('--zr-rad-min', dest='zr_rad_min', help='Minimum zircon equivalent spherical grain radius in micrometers', default=40.0, type=float)
@@ -72,7 +72,7 @@ def main():
     display_plot = not args.no_display_plot
 
     eu_vs_radius(num_points=args.num_points, cooling_hist_type=args.cooling_hist_type, temp_max=args.temp_max,
-                 rate=args.rate, time_hist=args.time_hist, temp_hist=args.temp_hist, ap_u_min=args.ap_u_min,
+                 cooling_rate=args.cooling_rate, time_hist=args.time_hist, temp_hist=args.temp_hist, ap_u_min=args.ap_u_min,
                  ap_u_max=args.ap_u_max, zr_u_min=args.zr_u_min, zr_u_max=args.zr_u_max, ap_rad_min=args.ap_rad_min,
                  ap_rad_max=args.ap_rad_max, zr_rad_min=args.zr_rad_min, zr_rad_max=args.zr_rad_max,
                  ap_thorium=args.ap_thorium, zr_thorium=args.zr_thorium, plot_type=args.plot_type,
