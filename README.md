@@ -67,10 +67,14 @@ To find more information about options available for command-line use you can in
 
 ## Attribution
 
-When including plots generated using T<sub>c</sub>plotter in publications or presentations, please cite the following articles:
+When including plots generated using T<sub>c</sub>plotter in publications or presentations, please cite the following article:
 
-- Whipp, D. M., Kellett, D. A., Coutand, I., and Ketcham, R. A.: Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers. Geochronology, doi: [10.5194/gchron-2021-29](https://doi.org/10.5194/gchron-2021-29), in revision.
-- Ketcham, R. A., Donelick, R. A., & Carlson, W. D.: Variability of apatite fission-track annealing kinetics III: Extrapolation to geological time scales. American Mineralogist, 84, 1235-1255, doi: [10.2138/am-1999-0903](https://doi.org/10.2138/am-1999-0903), 1999. 
+- Whipp, D. M., Kellett, D. A., Coutand, I, & Ketcham, R. A. (in revision). Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers. *Geochronology*, doi: [10.5194/gchron-2021-29](https://doi.org/10.5194/gchron-2021-29).
+
+The age prediction software used for calculating apatite and zircon (U-Th)/He and apatite fission-track ages was written by Richard Ketcham at the University of Texas, USA. Results published using this software should cite the articles below:
+
+- Ketcham, R. A., Donelick, R. A., & Carlson, W. D.: Variability of apatite fission-track annealing kinetics III: Extrapolation to geological time scales. American Mineralogist, 84, 1235-1255, doi: [10.2138/am-1999-0903](https://doi.org/10.2138/am-1999-0903), 1999.
+
 - Ketcham, R. A., Mora, A., and Parra, M.: Deciphering exhumation and burial history with multi-sample down-well thermochronometric inverse modelling, Basin Res., 30, 48-64, [10.1111/bre.12207](https://doi.org/10.1111/bre.12207), 2018.
 
 ## License
