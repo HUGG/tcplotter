@@ -14,6 +14,12 @@ Plotting functions in tcplotter
 
 .. autofunction:: tcplotter.eu_vs_radius
 
+``rate_vs_radius_eu``
+~~~~~~~~~~~~~~~~~~~~~
+
 .. autofunction:: tcplotter.rate_vs_radius_eu
+
+``rate_vs_age_tc``
+~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: tcplotter.rate_vs_age_tc
