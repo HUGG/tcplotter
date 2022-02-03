@@ -16,7 +16,7 @@ This will open an interactive web interface to the code where you can see how it
 ## Installation
 
 Currently, we recommend using the code [via Binder](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/tcplotter.ipynb) as the easiest option, as we do not yet have a Python package available for T<sub>c</sub>plotter.
-If you would like to install the software for your own use, you can find detailed instructions on the [T<sub>c</sub>plotter documentation page](https://tcplotter.readthedocs.io/en/develop/installation.html#installing-the-latest-version-of-t-sub-c-sub-plotter-from-github).
+If you would like to install the software for your own use, you can find detailed instructions on the [T<sub>c</sub>plotter documentation page](https://tcplotter.readthedocs.io/en/latest/installation.html#installing-the-latest-version-of-t-sub-c-sub-plotter-from-github).
 
 ## Usage
 
