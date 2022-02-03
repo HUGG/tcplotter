@@ -12,7 +12,7 @@ import subprocess
 # Define function for calculating effective uranium concentration
 def calc_eu(uranium, thorium):
     """Calculates effective uranium concentration from U, Th inputs"""
-    return uranium + 0.235 * thorium
+    return uranium + 0.238 * thorium
 
 
 # Define function to find which version of the RDAAM_He/ketch_aft to use
@@ -41,6 +41,7 @@ def time_vs_temp(
     plot_file_format="pdf",
     plot_dpi=300,
     plot_style="seaborn-whitegrid",
+    fill_between=True,
     display_plot=True,
 ):
     """
@@ -68,6 +69,8 @@ def time_vs_temp(
         Saved plot resolution in dots per inch.
     plot_style : str, default='seaborn-whitegrid'
         Style sheet used for plotting. See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html.
+    fill_between : bool, default=True
+        Flag for whether to fill area between min, max cooling rates.
     display_plot : bool, default=True
         Flag for whether to display the plot.
 
@@ -82,15 +85,25 @@ def time_vs_temp(
     dir_name = os.path.dirname(script_path)
     os.chdir(dir_name)
 
+    # Find time and temperature bounds for plot
+    time_plot_min = min(time_max, temp_max / cooling_rate_min)
+    temp_plot_min = min(temp_max, cooling_rate_min * time_plot_min)
+    time_plot_slow = min(time_max, temp_max / cooling_rate_slow)
+    temp_plot_slow = min(temp_max, cooling_rate_slow * time_plot_slow)
+    time_plot_avg = min(time_max, temp_max / cooling_rate_avg)
+    temp_plot_avg = min(temp_max, cooling_rate_avg * time_plot_avg)
+    time_plot_max = min(time_max, temp_max / cooling_rate_max)
+    temp_plot_max = min(temp_max, cooling_rate_max * time_plot_max)
+
     # Create arrays of points to plot
-    min_rate_x = np.array([temp_max / cooling_rate_min, 0.0])
-    min_rate_y = np.array([temp_max, 0.0])
-    slow_rate_x = np.array([temp_max / cooling_rate_slow, 0.0])
-    slow_rate_y = np.array([temp_max, 0.0])
-    avg_rate_x = np.array([temp_max / cooling_rate_avg, 0.0])
-    avg_rate_y = np.array([temp_max, 0.0])
-    max_rate_x = np.array([temp_max / cooling_rate_max, 0.0])
-    max_rate_y = np.array([temp_max, 0.0])
+    min_rate_x = np.array([time_plot_min, 0.0])
+    min_rate_y = np.array([temp_plot_min, 0.0])
+    slow_rate_x = np.array([time_plot_slow, 0.0])
+    slow_rate_y = np.array([temp_plot_slow, 0.0])
+    avg_rate_x = np.array([time_plot_avg, 0.0])
+    avg_rate_y = np.array([temp_plot_avg, 0.0])
+    max_rate_x = np.array([time_plot_max, 0.0])
+    max_rate_y = np.array([temp_plot_max, 0.0])
 
     # Set plot style
     plt.style.use(plot_style)
@@ -98,15 +111,23 @@ def time_vs_temp(
     # Create figure
     fig, ax = plt.subplots(1, 1, figsize=(6, 5))
 
-    # Plot lines and fill
-    ax.fill_betweenx(
-        min_rate_y,
-        min_rate_x,
-        max_rate_x,
-        color="black",
-        alpha=0.15,
-        label="Range of model cooling rates",
-    )
+    if fill_between:
+        # Define fill ranges
+        min_rate_filly = np.array([temp_max, 0.0])
+        min_rate_fillx = np.array([temp_max / cooling_rate_min, 0.0])
+        max_rate_fillx = np.array([temp_max / cooling_rate_max, 0.0])
+
+        # Plot fill
+        ax.fill_betweenx(
+            min_rate_filly,
+            min_rate_fillx,
+            max_rate_fillx,
+            color="black",
+            alpha=0.15,
+            label="Range of model cooling rates",
+        )
+
+    # Plot lines
     ax.plot(min_rate_x, min_rate_y, color="black")
     ax.plot(slow_rate_x, slow_rate_y, color="black")
     ax.plot(avg_rate_x, avg_rate_y, color="black")
@@ -153,8 +174,8 @@ def eu_vs_radius(
     cooling_hist_type=1,
     temp_max=350.0,
     cooling_rate=10.0,
-    time_hist=[0.0, 10.0, 25.0],
-    temp_hist=[0.0, 200.0, 250.0],
+    time_hist=[0.0, 10.0, 25.0, 35.0],
+    temp_hist=[0.0, 75.0, 50.0, 350.0],
     ap_u_min=1.0,
     ap_u_max=150.0,
     zr_u_min=1.0,
@@ -200,11 +221,11 @@ def eu_vs_radius(
         Max temperature for cooling history (in degrees C). Option only for cooling history type 1.
     cooling_rate : float, default=10.0
         Cooling rate in degrees C per Myr. Option only for cooling history type 1.
-    time_hist : list of floats or ints, default=[0.0, 10.0, 25.0]
+    time_hist : list of floats or ints, default=[0.0, 10.0, 25.0, 35.0]
         Time points defining cooling history in Ma (millions of years ago).
         NOTE: Present-day point should be first in list.
         Option only for cooling history type 2.
-    temp_hist : list of floats or ints, default=[0.0, 200.0, 250.0]
+    temp_hist : list of floats or ints, default=[0.0, 75.0, 50.0, 350.0]
         Temperature points defining cooling history in degrees C.
         NOTE: Present-day point should be first in list.
         Option only for cooling history type 2.
@@ -455,7 +476,7 @@ def eu_vs_radius(
             colors="k",
         )
         # Add age contour labels
-        ax[0].clabel(ap_contours_age, fmt="%1.1f")
+        ax[0].clabel(ap_contours_age)
         # Create age contour fill
         ap_contourf_age = ax[0].tricontourf(
             ap_x_list,
@@ -480,7 +501,7 @@ def eu_vs_radius(
             colors="black",
         )
         # Add closure temperature contour labels
-        ax[1].clabel(ap_contours_tc, fmt="%1.1f")
+        ax[1].clabel(ap_contours_tc)
         # Create closure temperature contour fill
         ap_contourf_tc = ax[1].tricontourf(
             ap_x_list,
@@ -507,7 +528,7 @@ def eu_vs_radius(
             colors="k",
         )
         # Add age contour labels
-        ax[0].clabel(zr_contours_age, fmt="%1.1f")
+        ax[0].clabel(zr_contours_age)
         # Create age contour fill
         zr_contourf_age = ax[0].tricontourf(
             zr_x_list,
@@ -532,7 +553,7 @@ def eu_vs_radius(
             colors="k",
         )
         # Add closure temperature contour labels
-        ax[1].clabel(zr_contours_tc, fmt="%1.1f")
+        ax[1].clabel(zr_contours_tc)
         # Create closure temperature contour fill
         zr_contourf_tc = ax[1].tricontourf(
             zr_x_list,
@@ -559,7 +580,7 @@ def eu_vs_radius(
             colors="k",
         )
         # Add age contour labels
-        ax[0][0].clabel(ap_contours_age, fmt="%1.1f")
+        ax[0][0].clabel(ap_contours_age)
         # Create age contour fill
         ap_contourf_age = ax[0][0].tricontourf(
             ap_x_list,
@@ -584,7 +605,7 @@ def eu_vs_radius(
             colors="k",
         )
         # Add closure temperature contour labels
-        ax[0][1].clabel(ap_contours_tc, fmt="%1.1f")
+        ax[0][1].clabel(ap_contours_tc)
         # Create closure temperature contour fill
         ap_contourf_tc = ax[0][1].tricontourf(
             ap_x_list,
@@ -609,7 +630,7 @@ def eu_vs_radius(
             colors="k",
         )
         # Add age contour labels
-        ax[1][0].clabel(zr_contours_age, fmt="%1.1f")
+        ax[1][0].clabel(zr_contours_age)
         # Create age contour fill
         zr_contourf_age = ax[1][0].tricontourf(
             zr_x_list,
@@ -634,7 +655,7 @@ def eu_vs_radius(
             colors="k",
         )
         # Add closure temperature contour labels
-        ax[1][1].clabel(zr_contours_tc, fmt="%1.1f")
+        ax[1][1].clabel(zr_contours_tc)
         # Create closure temperature contour fill
         zr_contourf_tc = ax[1][1].tricontourf(
             zr_x_list,
@@ -1154,7 +1175,7 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0].clabel(ap_contours_tc, fmt="%1.1f")
+        ax[0].clabel(ap_contours_tc)
         # Create closure temperature contour fill
         ap_contourf_tc1 = ax[0].tricontourf(
             ap_x_list1,
@@ -1182,7 +1203,7 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1].clabel(ap_contours_tc, fmt="%1.1f")
+        ax[1].clabel(ap_contours_tc)
         # Create closure temperature contour fill
         ap_contourf_tc2 = ax[1].tricontourf(
             ap_x_list2,
@@ -1212,7 +1233,7 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0].clabel(zr_contours_tc, fmt="%1.1f")
+        ax[0].clabel(zr_contours_tc)
         # Create closure temperature contour fill
         zr_contourf_tc1 = ax[0].tricontourf(
             zr_x_list1,
@@ -1240,7 +1261,7 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1].clabel(zr_contours_tc, fmt="%1.1f")
+        ax[1].clabel(zr_contours_tc)
         # Create closure temperature contour fill
         zr_contourf_tc2 = ax[1].tricontourf(
             zr_x_list2,
@@ -1270,7 +1291,7 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[0][0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0][0].clabel(ap_contours_tc, fmt="%1.1f")
+        ax[0][0].clabel(ap_contours_tc)
         # Create closure temperature contour fill
         ap_contourf_tc1 = ax[0][0].tricontourf(
             ap_x_list1,
@@ -1298,7 +1319,7 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[0][1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0][1].clabel(ap_contours_tc, fmt="%1.1f")
+        ax[0][1].clabel(ap_contours_tc)
         # Create closure temperature contour fill
         ap_contourf_tc2 = ax[0][1].tricontourf(
             ap_x_list2,
@@ -1326,7 +1347,7 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[1][0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1][0].clabel(zr_contours_tc, fmt="%1.1f")
+        ax[1][0].clabel(zr_contours_tc)
         # Create closure temperature contour fill
         zr_contourf_tc1 = ax[1][0].tricontourf(
             zr_x_list1,
@@ -1354,7 +1375,7 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[1][1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1][1].clabel(zr_contours_tc, fmt="%1.1f")
+        ax[1][1].clabel(zr_contours_tc)
         # Create closure temperature contour fill
         zr_contourf_tc2 = ax[1][1].tricontourf(
             zr_x_list2,
