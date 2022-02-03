@@ -12,7 +12,7 @@ import subprocess
 # Define function for calculating effective uranium concentration
 def calc_eu(uranium, thorium):
     """Calculates effective uranium concentration from U, Th inputs"""
-    return uranium + 0.235 * thorium
+    return uranium + 0.238 * thorium
 
 
 # Define function to find which version of the RDAAM_He/ketch_aft to use
@@ -20,32 +20,44 @@ def get_tc_exec(command):
     """Returns the location of the RDAAM_He or ketch_aft executable"""
     if shutil.which(command) is not None:
         tc_exec = command
-    elif Path("bin/"+command).is_file():
+    elif Path("bin/" + command).is_file():
         tc_exec = "bin/" + command
     else:
-        raise FileNotFoundError(f"Age calculation program {command} not found. See Troubleshooting in tcplotter docs online.")
+        raise FileNotFoundError(
+            f"Age calculation program {command} not found. See Troubleshooting in tcplotter docs online."
+        )
     return tc_exec
 
 
 # Define function for creating plot of cooling rates
-def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, temp_max=250.0, time_max=50.0,
-                 save_plot=False, plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-whitegrid',
-                 display_plot=True,
-                 ):
+def time_vs_temp(
+    cooling_rate_min=0.1,
+    cooling_rate_slow=1.0,
+    cooling_rate_avg=10.0,
+    cooling_rate_max=100.0,
+    temp_max=350.0,
+    time_max=50.0,
+    save_plot=False,
+    plot_file_format="pdf",
+    plot_dpi=300,
+    plot_style="seaborn-whitegrid",
+    fill_between=True,
+    display_plot=True,
+):
     """
     Plots cooling rate lines for different input rates.
 
     Parameters
     ----------
-    rate_min : float or int, default=0.1
+    cooling_rate_min : float or int, default=0.1
         Minimum cooling rate to plot in degrees C / Myr.
-    rate_slow : float or int, default=1.0
+    cooling_rate_slow : float or int, default=1.0
         "Slow" cooling rate to plot in degrees C / Myr.
-    rate_avg : float or int, default=10.0
+    cooling_rate_avg : float or int, default=10.0
         "Average" cooling rate to plot in degrees C / Myr.
-    rate_max : float or int, default=100.0
+    cooling_rate_max : float or int, default=100.0
         Maximum cooling rate to plot in degrees C / Myr.
-    temp_max : float or int, default=250.0
+    temp_max : float or int, default=350.0
         Maximum temperature for cooling history in degrees C.
     time_max : float or int, default=50.0
         Maximum value for time on x-axis of plot in millions of years ago (Ma).
@@ -57,6 +69,8 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
         Saved plot resolution in dots per inch.
     plot_style : str, default='seaborn-whitegrid'
         Style sheet used for plotting. See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html.
+    fill_between : bool, default=True
+        Flag for whether to fill area between min, max cooling rates.
     display_plot : bool, default=True
         Flag for whether to display the plot.
 
@@ -71,15 +85,25 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
     dir_name = os.path.dirname(script_path)
     os.chdir(dir_name)
 
+    # Find time and temperature bounds for plot
+    time_plot_min = min(time_max, temp_max / cooling_rate_min)
+    temp_plot_min = min(temp_max, cooling_rate_min * time_plot_min)
+    time_plot_slow = min(time_max, temp_max / cooling_rate_slow)
+    temp_plot_slow = min(temp_max, cooling_rate_slow * time_plot_slow)
+    time_plot_avg = min(time_max, temp_max / cooling_rate_avg)
+    temp_plot_avg = min(temp_max, cooling_rate_avg * time_plot_avg)
+    time_plot_max = min(time_max, temp_max / cooling_rate_max)
+    temp_plot_max = min(temp_max, cooling_rate_max * time_plot_max)
+
     # Create arrays of points to plot
-    min_rate_x = np.array([temp_max / rate_min, 0.0])
-    min_rate_y = np.array([temp_max, 0.0])
-    slow_rate_x = np.array([temp_max / rate_slow, 0.0])
-    slow_rate_y = np.array([temp_max, 0.0])
-    avg_rate_x = np.array([temp_max / rate_avg, 0.0])
-    avg_rate_y = np.array([temp_max, 0.0])
-    max_rate_x = np.array([temp_max / rate_max, 0.0])
-    max_rate_y = np.array([temp_max, 0.0])
+    min_rate_x = np.array([time_plot_min, 0.0])
+    min_rate_y = np.array([temp_plot_min, 0.0])
+    slow_rate_x = np.array([time_plot_slow, 0.0])
+    slow_rate_y = np.array([temp_plot_slow, 0.0])
+    avg_rate_x = np.array([time_plot_avg, 0.0])
+    avg_rate_y = np.array([temp_plot_avg, 0.0])
+    max_rate_x = np.array([time_plot_max, 0.0])
+    max_rate_y = np.array([temp_plot_max, 0.0])
 
     # Set plot style
     plt.style.use(plot_style)
@@ -87,13 +111,27 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
     # Create figure
     fig, ax = plt.subplots(1, 1, figsize=(6, 5))
 
-    # Plot lines and fill
-    ax.fill_betweenx(min_rate_y, min_rate_x, max_rate_x, color='black', alpha=0.15,
-                     label='Range of model cooling rates')
-    ax.plot(min_rate_x, min_rate_y, color='black')
-    ax.plot(slow_rate_x, slow_rate_y, color='black')
-    ax.plot(avg_rate_x, avg_rate_y, color='black')
-    ax.plot(max_rate_x, max_rate_y, color='black')
+    if fill_between:
+        # Define fill ranges
+        min_rate_filly = np.array([temp_max, 0.0])
+        min_rate_fillx = np.array([temp_max / cooling_rate_min, 0.0])
+        max_rate_fillx = np.array([temp_max / cooling_rate_max, 0.0])
+
+        # Plot fill
+        ax.fill_betweenx(
+            min_rate_filly,
+            min_rate_fillx,
+            max_rate_fillx,
+            color="black",
+            alpha=0.15,
+            label="Range of model cooling rates",
+        )
+
+    # Plot lines
+    ax.plot(min_rate_x, min_rate_y, color="black")
+    ax.plot(slow_rate_x, slow_rate_y, color="black")
+    ax.plot(avg_rate_x, avg_rate_y, color="black")
+    ax.plot(max_rate_x, max_rate_y, color="black")
 
     # Set axis tick label format
     ax.xaxis.set_major_formatter(ScalarFormatter())
@@ -104,8 +142,8 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
     ax.set_ylim([0.0, temp_max])
 
     # Add axis labels
-    ax.set_xlabel('Time (Ma)')
-    ax.set_ylabel('Temperature (°C)')
+    ax.set_xlabel("Time (Ma)")
+    ax.set_ylabel("Temperature (°C)")
 
     # Flip axis directions
     plt.gca().invert_xaxis()
@@ -117,8 +155,8 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
     # Save plot if requested
     if save_plot:
         # Set plot filename and save plot
-        plot_filename = 'time_vs_temp_' + str(plot_dpi) + 'dpi.' + plot_file_format
-        plt.savefig(wd_orig + '/' + plot_filename, dpi=plot_dpi)
+        plot_filename = "time_vs_temp_" + str(plot_dpi) + "dpi." + plot_file_format
+        plt.savefig(wd_orig + "/" + plot_filename, dpi=plot_dpi)
 
     # Display plot if requested
     if display_plot:
@@ -131,12 +169,37 @@ def time_vs_temp(rate_min=0.1, rate_slow=1.0, rate_avg=10.0, rate_max=100.0, tem
 
 
 # Define function for making contour plot of cooling ages and closure temperatures
-def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, time_hist=[0.0, 10.0, 25.0],
-                 temp_hist=[0.0, 200.0, 250.0], ap_u_min=1.0, ap_u_max=150.0, zr_u_min=1.0, zr_u_max=4000.0,
-                 ap_rad_min=40.0, ap_rad_max=100.0, zr_rad_min=40.0, zr_rad_max=100.0, ap_thorium=0.0, zr_thorium=0.0,
-                 plot_type=3, save_plot=False, plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-colorblind',
-                 plot_colormap='plasma', plot_alpha=1.0, plot_contour_lines=12, plot_contour_fills=256,
-                 display_plot=True, tt_plot=False, verbose=False, use_widget=False):
+def eu_vs_radius(
+    num_points=21,
+    cooling_hist_type=1,
+    temp_max=350.0,
+    cooling_rate=10.0,
+    time_hist=[0.0, 10.0, 25.0, 35.0],
+    temp_hist=[0.0, 75.0, 50.0, 350.0],
+    ap_u_min=1.0,
+    ap_u_max=150.0,
+    zr_u_min=1.0,
+    zr_u_max=4000.0,
+    ap_rad_min=40.0,
+    ap_rad_max=100.0,
+    zr_rad_min=40.0,
+    zr_rad_max=100.0,
+    ap_thorium=0.0,
+    zr_thorium=0.0,
+    plot_type=3,
+    save_plot=False,
+    plot_file_format="pdf",
+    plot_dpi=300,
+    plot_style="seaborn-colorblind",
+    plot_colormap="plasma",
+    plot_alpha=1.0,
+    plot_contour_lines=12,
+    plot_contour_fills=256,
+    display_plot=True,
+    tt_plot=False,
+    verbose=False,
+    use_widget=False,
+):
     """
     Calculates thermochronometer ages and closure temperatures for different effective uranium concentrations and
     equivalent spherical radii.
@@ -154,26 +217,25 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         1 = constant cooling rate (specify rate as parameter rate)
         2 = list of time-temperature points (fill in lists as parameters
         time_hist, temp_hist)
-    # Options for cooling history type 1
-    temp_max : float, default=250.0
-        Max temperature for cooling history (in degrees C).
-    rate : float, default=10.0
-        Cooling rate in degrees C per Myr.
-    # Options for cooling history type 2
-    time_hist : list of floats or ints, default=[0.0, 10.0, 25.0]
+    temp_max : float, default=350.0
+        Max temperature for cooling history (in degrees C). Option only for cooling history type 1.
+    cooling_rate : float, default=10.0
+        Cooling rate in degrees C per Myr. Option only for cooling history type 1.
+    time_hist : list of floats or ints, default=[0.0, 10.0, 25.0, 35.0]
         Time points defining cooling history in Ma (millions of years ago).
         NOTE: Present-day point should be first in list.
-    temp_hist : list of floats or ints, default=[0.0, 200.0, 250.0]
+        Option only for cooling history type 2.
+    temp_hist : list of floats or ints, default=[0.0, 75.0, 50.0, 350.0]
         Temperature points defining cooling history in degrees C.
         NOTE: Present-day point should be first in list.
-    # End cooling history options
+        Option only for cooling history type 2.
     ap_u_min : float, default=1.0
         Minimum apatite uranium concentration in ppm.
     ap_u_max : float, default=150.0
         Maximum apatite uranium concentration in ppm.
     zr_u_min : float, default=1.0
         Minimum zircon uranium concentration in ppm.
-    zr_u_max : float, default=1500.0
+    zr_u_max : float, default=4000.0
         Maximum zircon uranium concentration in ppm.
     ap_rad_min : float, default=40.0
         Minimum apatite equivalent spherical grain radius in micrometers.
@@ -226,7 +288,9 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     try:
         from IPython.display import display
     except ModuleNotFoundError:
-        print("Warning: IPython.display module not found. Disabling graphical progress bar.")
+        print(
+            "Warning: IPython.display module not found. Disabling graphical progress bar."
+        )
         use_widget = False
 
     # Ensure relative paths work by setting working dir to dir containing this script file
@@ -238,7 +302,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Define cooling history using constant cooling rate
     if cooling_hist_type == 1:
         # Define time and temperature histories
-        start_time = temp_max / rate
+        start_time = temp_max / cooling_rate
         time_hist = [0.0, start_time]
         temp_hist = [0.0, temp_max]
 
@@ -248,7 +312,7 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
     # Raise error if an unsupported value is given for cooling_hist_type
     else:
-        raise ValueError('Bad value for cooling_hist_type. Should be 1 or 2.')
+        raise ValueError("Bad value for cooling_hist_type. Should be 1 or 2.")
 
     # Create arrays of U concentrations
     ap_u = np.linspace(ap_u_min, ap_u_max, num_points)
@@ -267,16 +331,16 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
     # Screen output info
     if plot_type == 1:
-        model_type = 'apatite age/Tc (eU vs. radius)'
+        model_type = "apatite age/Tc (eU vs. radius)"
     elif plot_type == 2:
-        model_type = 'zircon age/Tc (eU vs. radius)'
+        model_type = "zircon age/Tc (eU vs. radius)"
     elif plot_type == 3:
-        model_type = 'apatite/zircon age/Tc (eU vs. radius)'
+        model_type = "apatite/zircon age/Tc (eU vs. radius)"
     else:
-        raise ValueError('Bad value for plot_type. Should be 1, 2, or 3.')
+        raise ValueError("Bad value for plot_type. Should be 1, 2, or 3.")
 
     # Define time-temperature history filename
-    tt_file = 'simple_time_temp.txt'
+    tt_file = "simple_time_temp.txt"
 
     # Get age calculation executable(s) to use
     rdaam_command = get_tc_exec("RDAAM_He")
@@ -307,14 +371,15 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     zr_y_list = []
 
     # Write cooling history points to file
-    with open(tt_file, 'w') as f:
+    with open(tt_file, "w") as f:
         for i in range(len(time_hist)):
-            f.write(f'{time_hist[i]:.4f},{temp_hist[i]:.1f}\n')
+            f.write(f"{time_hist[i]:.4f},{temp_hist[i]:.1f}\n")
 
     # Echo total model run time and cooling rate
     if verbose and cooling_hist_type == 1:
         print(
-            f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
+            f"Cooling from {temp_max:.1f}°C at a rate of {cooling_rate:.1f} °C/Myr will require {start_time:.2f} million years"
+        )
 
     # Create visual progress bar, if enabled
     if use_widget:
@@ -322,10 +387,10 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
             value=0,
             min=0,
             max=total_models,
-            description='Calculating:',
-            bar_style='',  # 'success', 'info', 'warning', 'danger' or ''
-            style={'bar_color': '#ff6666'},
-            orientation='horizontal'
+            description="Calculating:",
+            bar_style="",  # 'success', 'info', 'warning', 'danger' or ''
+            style={"bar_color": "#ff6666"},
+            orientation="horizontal",
         )
         display(s)
 
@@ -339,8 +404,9 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
                     s.value = model_count
                 else:
                     print(
-                        f'Calculating {model_type} - {int(round(100 * model_count / total_models)):3d}% ({model_count:5d} / {total_models:5d})\r',
-                        end="")
+                        f"Calculating {model_type} - {int(round(100 * model_count / total_models)):3d}% ({model_count:5d} / {total_models:5d})\r",
+                        end="",
+                    )
 
             # Define parameters for this iteration
             ap_uranium = ap_u[i]
@@ -353,14 +419,31 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
             zr_y_list.append(zr_radius)
 
             # Calculate (U-Th)/He ages
-            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
-                ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            command = (
+                rdaam_command
+                + " "
+                + tt_file
+                + " "
+                + str(ap_radius)
+                + " "
+                + str(ap_uranium)
+                + " "
+                + str(ap_thorium)
+                + " "
+                + str(zr_radius)
+                + " "
+                + str(zr_uranium)
+                + " "
+                + str(zr_thorium)
+            )
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
 
             # Parse output for ages
             stdout = p.stdout.readlines()
-            corr_ahe_age = stdout[0].split()[7].decode('UTF-8')
-            corr_zhe_age = stdout[1].split()[7].decode('UTF-8')
+            corr_ahe_age = stdout[0].split()[7].decode("UTF-8")
+            corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
 
             # Find closure temperatures from cooling ages and thermal history
             tc_interp = interp1d(time_hist, temp_hist)
@@ -375,7 +458,8 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
             if verbose:
                 print(
-                    f'AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C)')
+                    f"AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C)"
+                )
 
     # Clean up Tt file
     os.remove(tt_file)
@@ -383,26 +467,50 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Apatite eU versus radius
     if plot_type == 1:
         # Create age contour lines
-        ap_contours_age = ax[0].tricontour(ap_x_list, ap_y_list, ahe_age_list, plot_contour_lines, linewidths=0.5,
-                                           colors='k')
+        ap_contours_age = ax[0].tricontour(
+            ap_x_list,
+            ap_y_list,
+            ahe_age_list,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Add age contour labels
-        ax[0].clabel(ap_contours_age, fmt='%1.1f')
+        ax[0].clabel(ap_contours_age)
         # Create age contour fill
-        ap_contourf_age = ax[0].tricontourf(ap_x_list, ap_y_list, ahe_age_list, plot_contour_fills, cmap=plot_colormap,
-                                            alpha=plot_alpha)
+        ap_contourf_age = ax[0].tricontourf(
+            ap_x_list,
+            ap_y_list,
+            ahe_age_list,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_age.collections:
             c.set_edgecolor("face")
 
         # Create closure temperature contour lines
-        ap_contours_tc = ax[1].tricontour(ap_x_list, ap_y_list, ahe_tc_list, plot_contour_lines, linewidths=0.5,
-                                          colors='black')
+        ap_contours_tc = ax[1].tricontour(
+            ap_x_list,
+            ap_y_list,
+            ahe_tc_list,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="black",
+        )
         # Add closure temperature contour labels
-        ax[1].clabel(ap_contours_tc, fmt='%1.1f')
+        ax[1].clabel(ap_contours_tc)
         # Create closure temperature contour fill
-        ap_contourf_tc = ax[1].tricontourf(ap_x_list, ap_y_list, ahe_tc_list, plot_contour_fills, cmap=plot_colormap,
-                                           alpha=plot_alpha)
+        ap_contourf_tc = ax[1].tricontourf(
+            ap_x_list,
+            ap_y_list,
+            ahe_tc_list,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
@@ -411,26 +519,50 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Zircon eU versus radius
     elif plot_type == 2:
         # Create age contour lines
-        zr_contours_age = ax[0].tricontour(zr_x_list, zr_y_list, zhe_age_list, plot_contour_lines, linewidths=0.5,
-                                           colors='k')
+        zr_contours_age = ax[0].tricontour(
+            zr_x_list,
+            zr_y_list,
+            zhe_age_list,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Add age contour labels
-        ax[0].clabel(zr_contours_age, fmt='%1.1f')
+        ax[0].clabel(zr_contours_age)
         # Create age contour fill
-        zr_contourf_age = ax[0].tricontourf(zr_x_list, zr_y_list, zhe_age_list, plot_contour_fills, cmap=plot_colormap,
-                                            alpha=plot_alpha)
+        zr_contourf_age = ax[0].tricontourf(
+            zr_x_list,
+            zr_y_list,
+            zhe_age_list,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_age.collections:
             c.set_edgecolor("face")
 
         # Create closure temperature contour lines
-        zr_contours_tc = ax[1].tricontour(zr_x_list, zr_y_list, zhe_tc_list, plot_contour_lines, linewidths=0.5,
-                                          colors='k')
+        zr_contours_tc = ax[1].tricontour(
+            zr_x_list,
+            zr_y_list,
+            zhe_tc_list,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Add closure temperature contour labels
-        ax[1].clabel(zr_contours_tc, fmt='%1.1f')
+        ax[1].clabel(zr_contours_tc)
         # Create closure temperature contour fill
-        zr_contourf_tc = ax[1].tricontourf(zr_x_list, zr_y_list, zhe_tc_list, plot_contour_fills, cmap=plot_colormap,
-                                           alpha=plot_alpha)
+        zr_contourf_tc = ax[1].tricontourf(
+            zr_x_list,
+            zr_y_list,
+            zhe_tc_list,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc.collections:
@@ -439,54 +571,100 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Apatite and zircon eU versus radius
     else:
         # Create age contour lines
-        ap_contours_age = ax[0][0].tricontour(ap_x_list, ap_y_list, ahe_age_list, plot_contour_lines, linewidths=0.5,
-                                              colors='k')
+        ap_contours_age = ax[0][0].tricontour(
+            ap_x_list,
+            ap_y_list,
+            ahe_age_list,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Add age contour labels
-        ax[0][0].clabel(ap_contours_age, fmt='%1.1f')
+        ax[0][0].clabel(ap_contours_age)
         # Create age contour fill
-        ap_contourf_age = ax[0][0].tricontourf(ap_x_list, ap_y_list, ahe_age_list, plot_contour_fills,
-                                               cmap=plot_colormap,
-                                               alpha=plot_alpha)
+        ap_contourf_age = ax[0][0].tricontourf(
+            ap_x_list,
+            ap_y_list,
+            ahe_age_list,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_age.collections:
             c.set_edgecolor("face")
 
         # Create closure temperature contour lines
-        ap_contours_tc = ax[0][1].tricontour(ap_x_list, ap_y_list, ahe_tc_list, plot_contour_lines, linewidths=0.5,
-                                             colors='k')
+        ap_contours_tc = ax[0][1].tricontour(
+            ap_x_list,
+            ap_y_list,
+            ahe_tc_list,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Add closure temperature contour labels
-        ax[0][1].clabel(ap_contours_tc, fmt='%1.1f')
+        ax[0][1].clabel(ap_contours_tc)
         # Create closure temperature contour fill
-        ap_contourf_tc = ax[0][1].tricontourf(ap_x_list, ap_y_list, ahe_tc_list, plot_contour_fills, cmap=plot_colormap,
-                                              alpha=plot_alpha)
+        ap_contourf_tc = ax[0][1].tricontourf(
+            ap_x_list,
+            ap_y_list,
+            ahe_tc_list,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
             c.set_edgecolor("face")
 
         # Create age contour lines
-        zr_contours_age = ax[1][0].tricontour(zr_x_list, zr_y_list, zhe_age_list, plot_contour_lines, linewidths=0.5,
-                                              colors='k')
+        zr_contours_age = ax[1][0].tricontour(
+            zr_x_list,
+            zr_y_list,
+            zhe_age_list,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Add age contour labels
-        ax[1][0].clabel(zr_contours_age, fmt='%1.1f')
+        ax[1][0].clabel(zr_contours_age)
         # Create age contour fill
-        zr_contourf_age = ax[1][0].tricontourf(zr_x_list, zr_y_list, zhe_age_list, plot_contour_fills,
-                                               cmap=plot_colormap,
-                                               alpha=plot_alpha)
+        zr_contourf_age = ax[1][0].tricontourf(
+            zr_x_list,
+            zr_y_list,
+            zhe_age_list,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_age.collections:
             c.set_edgecolor("face")
 
         # Create closure temperature contour lines
-        zr_contours_tc = ax[1][1].tricontour(zr_x_list, zr_y_list, zhe_tc_list, plot_contour_lines, linewidths=0.5,
-                                             colors='k')
+        zr_contours_tc = ax[1][1].tricontour(
+            zr_x_list,
+            zr_y_list,
+            zhe_tc_list,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Add closure temperature contour labels
-        ax[1][1].clabel(zr_contours_tc, fmt='%1.1f')
+        ax[1][1].clabel(zr_contours_tc)
         # Create closure temperature contour fill
-        zr_contourf_tc = ax[1][1].tricontourf(zr_x_list, zr_y_list, zhe_tc_list, plot_contour_fills, cmap=plot_colormap,
-                                              alpha=plot_alpha)
+        zr_contourf_tc = ax[1][1].tricontourf(
+            zr_x_list,
+            zr_y_list,
+            zhe_tc_list,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc.collections:
@@ -496,38 +674,38 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
     # Apatite eU versus radius
     if plot_type == 1:
-        ax[0].set_title('Apatite (U-Th)/He age [Ma]')
-        ax[1].set_title('Apatite (U-Th)/He closure temperature [°C]')
+        ax[0].set_title("Apatite (U-Th)/He age [Ma]")
+        ax[1].set_title("Apatite (U-Th)/He closure temperature [°C]")
 
     # Zircon eU versus radius
     elif plot_type == 2:
-        ax[0].set_title('Zircon (U-Th)/He age [Ma]')
-        ax[1].set_title('Zircon (U-Th)/He closure temperature [°C]')
+        ax[0].set_title("Zircon (U-Th)/He age [Ma]")
+        ax[1].set_title("Zircon (U-Th)/He closure temperature [°C]")
 
     # Apatite and zircon eU versus radius
     else:
-        ax[0][0].set_title('Apatite (U-Th)/He age [Ma]')
-        ax[0][1].set_title('Apatite (U-Th)/He closure temperature [°C]')
-        ax[1][0].set_title('Zircon (U-Th)/He age [Ma]')
-        ax[1][1].set_title('Zircon (U-Th)/He closure temperature [°C]')
+        ax[0][0].set_title("Apatite (U-Th)/He age [Ma]")
+        ax[0][1].set_title("Apatite (U-Th)/He closure temperature [°C]")
+        ax[1][0].set_title("Zircon (U-Th)/He age [Ma]")
+        ax[1][1].set_title("Zircon (U-Th)/He closure temperature [°C]")
 
     # Apatite or Zircon eU versus radius
     if plot_type < 3:
-        ax[0].set_xlabel('Effective uranium (ppm)')
-        ax[1].set_xlabel('Effective uranium (ppm)')
-        ax[0].set_ylabel('Equivalent spherical radius (µm)')
-        ax[1].set_ylabel('Equivalent spherical radius (µm)')
+        ax[0].set_xlabel("Effective uranium (ppm)")
+        ax[1].set_xlabel("Effective uranium (ppm)")
+        ax[0].set_ylabel("Equivalent spherical radius (µm)")
+        ax[1].set_ylabel("Equivalent spherical radius (µm)")
 
     # Apatite and zircon eU versus radius
     else:
-        ax[0][0].set_xlabel('Effective uranium (ppm)')
-        ax[0][1].set_xlabel('Effective uranium (ppm)')
-        ax[0][0].set_ylabel('Equivalent spherical radius (µm)')
-        ax[0][1].set_ylabel('Equivalent spherical radius (µm)')
-        ax[1][0].set_xlabel('Effective uranium (ppm)')
-        ax[1][1].set_xlabel('Effective uranium (ppm)')
-        ax[1][0].set_ylabel('Equivalent spherical radius (µm)')
-        ax[1][1].set_ylabel('Equivalent spherical radius (µm)')
+        ax[0][0].set_xlabel("Effective uranium (ppm)")
+        ax[0][1].set_xlabel("Effective uranium (ppm)")
+        ax[0][0].set_ylabel("Equivalent spherical radius (µm)")
+        ax[0][1].set_ylabel("Equivalent spherical radius (µm)")
+        ax[1][0].set_xlabel("Effective uranium (ppm)")
+        ax[1][1].set_xlabel("Effective uranium (ppm)")
+        ax[1][0].set_ylabel("Equivalent spherical radius (µm)")
+        ax[1][1].set_ylabel("Equivalent spherical radius (µm)")
 
     # Use tight layout for subplots
     plt.tight_layout()
@@ -535,16 +713,26 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
     # Save plot if desired
     if save_plot:
         # Set file name prefix
-        plot_filename = 'eu_vs_radius'
+        plot_filename = "eu_vs_radius"
 
         # Define plot filename based on type of plot and save plot
         if plot_type == 1:
-            plot_savename = plot_filename + '_apatite_' + str(plot_dpi) + 'dpi.' + plot_file_format
+            plot_savename = (
+                plot_filename + "_apatite_" + str(plot_dpi) + "dpi." + plot_file_format
+            )
         elif plot_type == 2:
-            plot_savename = plot_filename + '_zircon_' + str(plot_dpi) + 'dpi.' + plot_file_format
+            plot_savename = (
+                plot_filename + "_zircon_" + str(plot_dpi) + "dpi." + plot_file_format
+            )
         else:
-            plot_savename = plot_filename + '_apatite_zircon_' + str(plot_dpi) + 'dpi.' + plot_file_format
-        plt.savefig(wd_orig + '/' + plot_savename, dpi=plot_dpi)
+            plot_savename = (
+                plot_filename
+                + "_apatite_zircon_"
+                + str(plot_dpi)
+                + "dpi."
+                + plot_file_format
+            )
+        plt.savefig(wd_orig + "/" + plot_savename, dpi=plot_dpi)
 
     # Display plot if desired
     if display_plot:
@@ -556,18 +744,18 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         fig2, ax2 = plt.subplots(1, 1, figsize=(6, 5))
 
         # Plot tT history
-        ax2.plot(time_hist, temp_hist, color='black')
+        ax2.plot(time_hist, temp_hist, color="black")
 
         # Set plot x and y range
         ax2.set_xlim([0.0, max(time_hist)])
         ax2.set_ylim([0.0, max(temp_hist)])
 
         # Add axis labels
-        ax2.set_xlabel('Time (Ma)')
-        ax2.set_ylabel('Temperature (°C)')
+        ax2.set_xlabel("Time (Ma)")
+        ax2.set_ylabel("Temperature (°C)")
 
         # Add title
-        ax2.set_title('Time-temperature history')
+        ax2.set_title("Time-temperature history")
 
         # Flip axis directions
         plt.gca().invert_xaxis()
@@ -579,8 +767,14 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
         # Save plot if desired
         if save_plot:
             # Define plot filename and save plot
-            plot_savename2 = plot_filename + '_tT_history_' + str(plot_dpi) + 'dpi.' + plot_file_format
-            plt.savefig(wd_orig + '/' + plot_savename2, dpi=plot_dpi)
+            plot_savename2 = (
+                plot_filename
+                + "_tT_history_"
+                + str(plot_dpi)
+                + "dpi."
+                + plot_file_format
+            )
+            plt.savefig(wd_orig + "/" + plot_savename2, dpi=plot_dpi)
 
         # Display plot if desired
         if display_plot:
@@ -593,13 +787,38 @@ def eu_vs_radius(num_points=21, cooling_hist_type=1, temp_max=250.0, rate=10.0, 
 
 
 # Define function for creating plot of cooling rates
-def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u_min=1.0, ap_u_max=150.0,
-                      ap_u_ref=10.0,
-                      zr_u_min=1.0, zr_u_max=4000.0, zr_u_ref=100.0, ap_rad_min=40.0, ap_rad_max=100.0, ap_rad_ref=45.0,
-                      zr_rad_min=40.0, zr_rad_max=100.0, zr_rad_ref=60.0, ap_thorium=0.0, zr_thorium=0.0, plot_type=3,
-                      save_plot=False, plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-colorblind',
-                      plot_colormap='plasma', plot_alpha=1.0, plot_contour_lines=12, plot_contour_fills=256,
-                      display_plot=True, verbose=False, use_widget=False):
+def rate_vs_radius_eu(
+    num_points=21,
+    cooling_rate_min=0.1,
+    cooling_rate_max=100.0,
+    temp_max=350.0,
+    ap_u_min=1.0,
+    ap_u_max=150.0,
+    ap_u_ref=10.0,
+    zr_u_min=1.0,
+    zr_u_max=4000.0,
+    zr_u_ref=100.0,
+    ap_rad_min=40.0,
+    ap_rad_max=100.0,
+    ap_rad_ref=45.0,
+    zr_rad_min=40.0,
+    zr_rad_max=100.0,
+    zr_rad_ref=60.0,
+    ap_thorium=0.0,
+    zr_thorium=0.0,
+    plot_type=3,
+    save_plot=False,
+    plot_file_format="pdf",
+    plot_dpi=300,
+    plot_style="seaborn-colorblind",
+    plot_colormap="plasma",
+    plot_alpha=1.0,
+    plot_contour_lines=12,
+    plot_contour_fills=256,
+    display_plot=True,
+    verbose=False,
+    use_widget=False,
+):
     """
     Calculates thermochronometer ages and closure temperatures for different cooling rates, effective uranium
     concentrations, and equivalent spherical radii.
@@ -612,11 +831,11 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
         NOTE: A value of num_points = 101 was used in the manuscript. It has been
         reduced here to make the plotting faster. Set this to 101 to reproduce
         the manuscript Figure 4.
-    rate_min : float, default=0.1
+    cooling_rate_min : float, default=0.1
         Minimum cooling rate in degrees C per Myr.
-    rate_max : float, default=100.0
+    cooling_rate_max : float, default=100.0
         Maximum cooling rate in degrees C per Myr.
-    temp_max : float, default=250.0
+    temp_max : float, default=350.0
         Max temperature for cooling history (in degrees C).
     ap_u_min : float, default=1.0
         Minimum apatite uranium concentration in ppm.
@@ -626,7 +845,7 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
         Apatite uranium concentration in ppm for rate versus radius plot.
     zr_u_min : float, default=1.0
         Minimum zircon uranium concentration in ppm.
-    zr_u_max : float, default=1500.0
+    zr_u_max : float, default=4000.0
         Maximum zircon uranium concentration in ppm.
     zr_u_ref : float, default=100.0
         Zircon uranium concentration in ppm for rate versus radius plot.
@@ -688,7 +907,9 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
     try:
         from IPython.display import display
     except ModuleNotFoundError:
-        print("Warning: IPython.display module not found. Disabling graphical progress bar.")
+        print(
+            "Warning: IPython.display module not found. Disabling graphical progress bar."
+        )
         use_widget = False
 
     # Ensure relative paths work by setting working dir to dir containing this script file
@@ -706,7 +927,11 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
     zr_rad = np.linspace(zr_rad_min, zr_rad_max, num_points)
 
     # Create cooling rate array
-    rates = np.logspace(start=np.log10(rate_min), stop=np.log10(rate_max), num=num_points)
+    rates = np.logspace(
+        start=np.log10(cooling_rate_min),
+        stop=np.log10(cooling_rate_max),
+        num=num_points,
+    )
 
     # Calculate effective uranium
     ap_eu = calc_eu(ap_u, ap_thorium)
@@ -717,16 +942,16 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
     # Screen output info
     if plot_type == 1:
-        model_type = 'apatite age/Tc (cooling rate vs. radius/eU)'
+        model_type = "apatite age/Tc (cooling rate vs. radius/eU)"
     elif plot_type == 2:
-        model_type = 'zircon age/Tc (cooling rate vs. radius/eU)'
+        model_type = "zircon age/Tc (cooling rate vs. radius/eU)"
     elif plot_type == 3:
-        model_type = 'apatite/zircon age/Tc (cooling rate vs. radius/eU)'
+        model_type = "apatite/zircon age/Tc (cooling rate vs. radius/eU)"
     else:
-        raise ValueError('Bad value for parameter plot_type. Must be 1, 2, or 3.')
+        raise ValueError("Bad value for parameter plot_type. Must be 1, 2, or 3.")
 
     # Define time-temperature history filename
-    tt_file = 'simple_time_temp.txt'
+    tt_file = "simple_time_temp.txt"
 
     # Get age calculation executable(s) to use
     rdaam_command = get_tc_exec("RDAAM_He")
@@ -770,10 +995,10 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
             value=0,
             min=0,
             max=total_models,
-            description='Calculating:',
-            bar_style='',  # 'success', 'info', 'warning', 'danger' or ''
-            style={'bar_color': '#ff6666'},
-            orientation='horizontal'
+            description="Calculating:",
+            bar_style="",  # 'success', 'info', 'warning', 'danger' or ''
+            style={"bar_color": "#ff6666"},
+            orientation="horizontal",
         )
         display(s)
 
@@ -787,8 +1012,9 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
                     s.value = model_count
                 else:
                     print(
-                        f'Calculating {model_type} - {int(round(100 * model_count / total_models)):3d}% ({model_count:5d} / {total_models:5d})\r',
-                        end="")
+                        f"Calculating {model_type} - {int(round(100 * model_count / total_models)):3d}% ({model_count:5d} / {total_models:5d})\r",
+                        end="",
+                    )
 
             # Define parameters for this iteration
             rate = rates[i]
@@ -803,24 +1029,42 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
             # Write synthetic cooling history points to file
             start_time = temp_max / rate
-            with open(tt_file, 'w') as f:
-                f.write('0.0,0.0\n')
-                f.write('{0:.4f},{1:.1f}'.format(start_time, temp_max))
+            with open(tt_file, "w") as f:
+                f.write("0.0,0.0\n")
+                f.write("{0:.4f},{1:.1f}".format(start_time, temp_max))
 
             # Screen output
             if verbose:
                 print(
-                    f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
+                    f"Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years"
+                )
 
             # Calculate (U-Th)/He ages
-            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
-                ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            command = (
+                rdaam_command
+                + " "
+                + tt_file
+                + " "
+                + str(ap_radius)
+                + " "
+                + str(ap_uranium)
+                + " "
+                + str(ap_thorium)
+                + " "
+                + str(zr_radius)
+                + " "
+                + str(zr_uranium)
+                + " "
+                + str(zr_thorium)
+            )
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
 
             # Parse output for ages
             stdout = p.stdout.readlines()
-            corr_ahe_age = stdout[0].split()[7].decode('UTF-8')
-            corr_zhe_age = stdout[1].split()[7].decode('UTF-8')
+            corr_ahe_age = stdout[0].split()[7].decode("UTF-8")
+            corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
 
             # Find closure temperatures from cooling ages and thermal history
             tc_interp = interp1d([0.0, start_time], [0.0, temp_max])
@@ -833,7 +1077,8 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
             if verbose:
                 print(
-                    f'AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C)')
+                    f"AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C)"
+                )
 
     # Loop over plotables - loop 2: rate versus eU
     for i in range(len(ap_x2)):
@@ -844,8 +1089,9 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
                     s.value = model_count
                 else:
                     print(
-                        f'Calculating {model_type} - {int(round(100 * (model_count) / total_models)):3d}% ({model_count:5d} / {total_models:5d})\r',
-                        end="")
+                        f"Calculating {model_type} - {int(round(100 * (model_count) / total_models)):3d}% ({model_count:5d} / {total_models:5d})\r",
+                        end="",
+                    )
 
             # Define parameters for this iteration
             rate = rates[i]
@@ -860,24 +1106,42 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
             # Write synthetic cooling history points to file
             start_time = temp_max / rate
-            with open(tt_file, 'w') as f:
-                f.write('0.0,0.0\n')
-                f.write('{0:.4f},{1:.1f}'.format(start_time, temp_max))
+            with open(tt_file, "w") as f:
+                f.write("0.0,0.0\n")
+                f.write("{0:.4f},{1:.1f}".format(start_time, temp_max))
 
             # Screen output
             if verbose:
                 print(
-                    f'Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years')
+                    f"Cooling from {temp_max:.1f}°C at a rate of {rate:.1f} °C/Myr will require {start_time:.2f} million years"
+                )
 
             # Calculate (U-Th)/He ages
-            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_radius) + ' ' + str(ap_uranium) + ' ' + str(
-                ap_thorium) + ' ' + str(zr_radius) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            command = (
+                rdaam_command
+                + " "
+                + tt_file
+                + " "
+                + str(ap_radius)
+                + " "
+                + str(ap_uranium)
+                + " "
+                + str(ap_thorium)
+                + " "
+                + str(zr_radius)
+                + " "
+                + str(zr_uranium)
+                + " "
+                + str(zr_thorium)
+            )
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
 
             # Parse output for ages
             stdout = p.stdout.readlines()
-            corr_ahe_age = stdout[0].split()[7].decode('UTF-8')
-            corr_zhe_age = stdout[1].split()[7].decode('UTF-8')
+            corr_ahe_age = stdout[0].split()[7].decode("UTF-8")
+            corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
 
             # Find closure temperatures from cooling ages and thermal history
             tc_interp = interp1d([0.0, start_time], [0.0, temp_max])
@@ -890,7 +1154,8 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
             if verbose:
                 print(
-                    f'AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C)')
+                    f"AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C)"
+                )
 
     # Clean up temporary tt file
     os.remove(tt_file)
@@ -899,16 +1164,27 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
     if plot_type == 1:
         # --- Apatite cooling rate versus radius ---
         # Create closure temperature contour lines
-        ap_contours_tc = ax[0].tricontour(ap_x_list1, ap_y_list1, ahe_tc_list1, plot_contour_lines, linewidths=0.5,
-                                          colors='k')
+        ap_contours_tc = ax[0].tricontour(
+            ap_x_list1,
+            ap_y_list1,
+            ahe_tc_list1,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Use log x-axis scaling
-        ax[0].set_xscale('log')
+        ax[0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0].clabel(ap_contours_tc, fmt='%1.1f')
+        ax[0].clabel(ap_contours_tc)
         # Create closure temperature contour fill
-        ap_contourf_tc1 = ax[0].tricontourf(ap_x_list1, ap_y_list1, ahe_tc_list1, plot_contour_fills,
-                                            cmap=plot_colormap,
-                                            alpha=plot_alpha)
+        ap_contourf_tc1 = ax[0].tricontourf(
+            ap_x_list1,
+            ap_y_list1,
+            ahe_tc_list1,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc1.collections:
@@ -916,16 +1192,27 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
         # --- Apatite cooling rate versus eU plot ---
         # Create closure temperature contour lines
-        ap_contours_tc = ax[1].tricontour(ap_x_list2, ap_y_list2, ahe_tc_list2, plot_contour_lines, linewidths=0.5,
-                                          colors='k')
+        ap_contours_tc = ax[1].tricontour(
+            ap_x_list2,
+            ap_y_list2,
+            ahe_tc_list2,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Use log x-axis scaling
-        ax[1].set_xscale('log')
+        ax[1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1].clabel(ap_contours_tc, fmt='%1.1f')
+        ax[1].clabel(ap_contours_tc)
         # Create closure temperature contour fill
-        ap_contourf_tc2 = ax[1].tricontourf(ap_x_list2, ap_y_list2, ahe_tc_list2, plot_contour_fills,
-                                            cmap=plot_colormap,
-                                            alpha=plot_alpha)
+        ap_contourf_tc2 = ax[1].tricontourf(
+            ap_x_list2,
+            ap_y_list2,
+            ahe_tc_list2,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc2.collections:
@@ -935,16 +1222,27 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
     elif plot_type == 2:
         # --- Zircon cooling rate versus radius ---
         # Create closure temperature contour lines
-        zr_contours_tc = ax[0].tricontour(zr_x_list1, zr_y_list1, zhe_tc_list1, plot_contour_lines, linewidths=0.5,
-                                          colors='k')
+        zr_contours_tc = ax[0].tricontour(
+            zr_x_list1,
+            zr_y_list1,
+            zhe_tc_list1,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Use log x-axis scaling
-        ax[0].set_xscale('log')
+        ax[0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0].clabel(zr_contours_tc, fmt='%1.1f')
+        ax[0].clabel(zr_contours_tc)
         # Create closure temperature contour fill
-        zr_contourf_tc1 = ax[0].tricontourf(zr_x_list1, zr_y_list1, zhe_tc_list1, plot_contour_fills,
-                                            cmap=plot_colormap,
-                                            alpha=plot_alpha)
+        zr_contourf_tc1 = ax[0].tricontourf(
+            zr_x_list1,
+            zr_y_list1,
+            zhe_tc_list1,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc1.collections:
@@ -952,16 +1250,27 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
         # --- Zircon cooling rate versus eU plot ---
         # Create closure temperature contour lines
-        zr_contours_tc = ax[1].tricontour(zr_x_list2, zr_y_list2, zhe_tc_list2, plot_contour_lines, linewidths=0.5,
-                                          colors='k')
+        zr_contours_tc = ax[1].tricontour(
+            zr_x_list2,
+            zr_y_list2,
+            zhe_tc_list2,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Use log x-axis scaling
-        ax[1].set_xscale('log')
+        ax[1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1].clabel(zr_contours_tc, fmt='%1.1f')
+        ax[1].clabel(zr_contours_tc)
         # Create closure temperature contour fill
-        zr_contourf_tc2 = ax[1].tricontourf(zr_x_list2, zr_y_list2, zhe_tc_list2, plot_contour_fills,
-                                            cmap=plot_colormap,
-                                            alpha=plot_alpha)
+        zr_contourf_tc2 = ax[1].tricontourf(
+            zr_x_list2,
+            zr_y_list2,
+            zhe_tc_list2,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc2.collections:
@@ -971,16 +1280,27 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
     else:
         # --- Apatite cooling rate versus radius ---
         # Create closure temperature contour lines
-        ap_contours_tc = ax[0][0].tricontour(ap_x_list1, ap_y_list1, ahe_tc_list1, plot_contour_lines, linewidths=0.5,
-                                             colors='k')
+        ap_contours_tc = ax[0][0].tricontour(
+            ap_x_list1,
+            ap_y_list1,
+            ahe_tc_list1,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Use log x-axis scaling
-        ax[0][0].set_xscale('log')
+        ax[0][0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0][0].clabel(ap_contours_tc, fmt='%1.1f')
+        ax[0][0].clabel(ap_contours_tc)
         # Create closure temperature contour fill
-        ap_contourf_tc1 = ax[0][0].tricontourf(ap_x_list1, ap_y_list1, ahe_tc_list1, plot_contour_fills,
-                                               cmap=plot_colormap,
-                                               alpha=plot_alpha)
+        ap_contourf_tc1 = ax[0][0].tricontourf(
+            ap_x_list1,
+            ap_y_list1,
+            ahe_tc_list1,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc1.collections:
@@ -988,16 +1308,27 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
         # --- Apatite cooling rate versus eU plot ---
         # Create closure temperature contour lines
-        ap_contours_tc = ax[0][1].tricontour(ap_x_list2, ap_y_list2, ahe_tc_list2, plot_contour_lines, linewidths=0.5,
-                                             colors='k')
+        ap_contours_tc = ax[0][1].tricontour(
+            ap_x_list2,
+            ap_y_list2,
+            ahe_tc_list2,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Use log x-axis scaling
-        ax[0][1].set_xscale('log')
+        ax[0][1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0][1].clabel(ap_contours_tc, fmt='%1.1f')
+        ax[0][1].clabel(ap_contours_tc)
         # Create closure temperature contour fill
-        ap_contourf_tc2 = ax[0][1].tricontourf(ap_x_list2, ap_y_list2, ahe_tc_list2, plot_contour_fills,
-                                               cmap=plot_colormap,
-                                               alpha=plot_alpha)
+        ap_contourf_tc2 = ax[0][1].tricontourf(
+            ap_x_list2,
+            ap_y_list2,
+            ahe_tc_list2,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc2.collections:
@@ -1005,16 +1336,27 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
         # --- Zircon cooling rate versus radius plot ---
         # Create closure temperature contour lines
-        zr_contours_tc = ax[1][0].tricontour(zr_x_list1, zr_y_list1, zhe_tc_list1, plot_contour_lines, linewidths=0.5,
-                                             colors='k')
+        zr_contours_tc = ax[1][0].tricontour(
+            zr_x_list1,
+            zr_y_list1,
+            zhe_tc_list1,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Use log x-axis scaling
-        ax[1][0].set_xscale('log')
+        ax[1][0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1][0].clabel(zr_contours_tc, fmt='%1.1f')
+        ax[1][0].clabel(zr_contours_tc)
         # Create closure temperature contour fill
-        zr_contourf_tc1 = ax[1][0].tricontourf(zr_x_list1, zr_y_list1, zhe_tc_list1, plot_contour_fills,
-                                               cmap=plot_colormap,
-                                               alpha=plot_alpha)
+        zr_contourf_tc1 = ax[1][0].tricontourf(
+            zr_x_list1,
+            zr_y_list1,
+            zhe_tc_list1,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc1.collections:
@@ -1022,16 +1364,27 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
         # --- Zircon cooling rate versus eU plot ---
         # Create closure temperature contour lines
-        zr_contours_tc = ax[1][1].tricontour(zr_x_list2, zr_y_list2, zhe_tc_list2, plot_contour_lines, linewidths=0.5,
-                                             colors='k')
+        zr_contours_tc = ax[1][1].tricontour(
+            zr_x_list2,
+            zr_y_list2,
+            zhe_tc_list2,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="k",
+        )
         # Use log x-axis scaling
-        ax[1][1].set_xscale('log')
+        ax[1][1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1][1].clabel(zr_contours_tc, fmt='%1.1f')
+        ax[1][1].clabel(zr_contours_tc)
         # Create closure temperature contour fill
-        zr_contourf_tc2 = ax[1][1].tricontourf(zr_x_list2, zr_y_list2, zhe_tc_list2, plot_contour_fills,
-                                               cmap=plot_colormap,
-                                               alpha=plot_alpha)
+        zr_contourf_tc2 = ax[1][1].tricontourf(
+            zr_x_list2,
+            zr_y_list2,
+            zhe_tc_list2,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc2.collections:
@@ -1041,36 +1394,36 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
     # Apatite only
     if plot_type == 1:
-        ax[0].set_title('Apatite (U-Th)/He closure temperature [°C]')
-        ax[1].set_title('Apatite (U-Th)/He closure temperature [°C]')
+        ax[0].set_title("Apatite (U-Th)/He closure temperature [°C]")
+        ax[1].set_title("Apatite (U-Th)/He closure temperature [°C]")
     # Zircon only
     elif plot_type == 2:
-        ax[0].set_title('Zircon (U-Th)/He closure temperature [°C]')
-        ax[1].set_title('Zircon (U-Th)/He closure temperature [°C]')
+        ax[0].set_title("Zircon (U-Th)/He closure temperature [°C]")
+        ax[1].set_title("Zircon (U-Th)/He closure temperature [°C]")
     # Apatite and zircon
     else:
-        ax[0][0].set_title('Apatite (U-Th)/He closure temperature [°C]')
-        ax[0][1].set_title('Apatite (U-Th)/He closure temperature [°C]')
-        ax[1][0].set_title('Zircon (U-Th)/He closure temperature [°C]')
-        ax[1][1].set_title('Zircon (U-Th)/He closure temperature [°C]')
+        ax[0][0].set_title("Apatite (U-Th)/He closure temperature [°C]")
+        ax[0][1].set_title("Apatite (U-Th)/He closure temperature [°C]")
+        ax[1][0].set_title("Zircon (U-Th)/He closure temperature [°C]")
+        ax[1][1].set_title("Zircon (U-Th)/He closure temperature [°C]")
 
     # Apatite or Zircon
     if plot_type < 3:
-        ax[0].set_xlabel('Cooling rate [°C/Myr]')
-        ax[1].set_xlabel('Cooling rate [°C/Myr]')
-        ax[0].set_ylabel('Equivalent spherical radius (µm)')
-        ax[1].set_ylabel('Effective uranium (ppm)')
+        ax[0].set_xlabel("Cooling rate [°C/Myr]")
+        ax[1].set_xlabel("Cooling rate [°C/Myr]")
+        ax[0].set_ylabel("Equivalent spherical radius (µm)")
+        ax[1].set_ylabel("Effective uranium (ppm)")
 
     # Apatite and zircon eU versus radius
     else:
-        ax[0][0].set_xlabel('Cooling rate [°C/Myr]')
-        ax[0][1].set_xlabel('Cooling rate [°C/Myr]')
-        ax[0][0].set_ylabel('Equivalent spherical radius (µm)')
-        ax[0][1].set_ylabel('Effective uranium (ppm)')
-        ax[1][0].set_xlabel('Cooling rate [°C/Myr]')
-        ax[1][1].set_xlabel('Cooling rate [°C/Myr]')
-        ax[1][0].set_ylabel('Equivalent spherical radius (µm)')
-        ax[1][1].set_ylabel('Effective uranium (ppm)')
+        ax[0][0].set_xlabel("Cooling rate [°C/Myr]")
+        ax[0][1].set_xlabel("Cooling rate [°C/Myr]")
+        ax[0][0].set_ylabel("Equivalent spherical radius (µm)")
+        ax[0][1].set_ylabel("Effective uranium (ppm)")
+        ax[1][0].set_xlabel("Cooling rate [°C/Myr]")
+        ax[1][1].set_xlabel("Cooling rate [°C/Myr]")
+        ax[1][0].set_ylabel("Equivalent spherical radius (µm)")
+        ax[1][1].set_ylabel("Effective uranium (ppm)")
 
     # Don't use scientific notation for x-axis
     if plot_type < 3:
@@ -1088,16 +1441,26 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
     # Save plot if requested
     if save_plot:
         # Set file name prefix
-        plot_filename = 'rate_vs_radius_eu'
+        plot_filename = "rate_vs_radius_eu"
 
         # Define plot filename based on type of plot and save plot
         if plot_type == 1:
-            plot_savename = plot_filename + '_apatite_' + str(plot_dpi) + 'dpi.' + plot_file_format
+            plot_savename = (
+                plot_filename + "_apatite_" + str(plot_dpi) + "dpi." + plot_file_format
+            )
         elif plot_type == 2:
-            plot_savename = plot_filename + '_zircon_' + str(plot_dpi) + 'dpi.' + plot_file_format
+            plot_savename = (
+                plot_filename + "_zircon_" + str(plot_dpi) + "dpi." + plot_file_format
+            )
         else:
-            plot_savename = plot_filename + '_apatite_zircon_' + str(plot_dpi) + 'dpi.' + plot_file_format
-        plt.savefig(wd_orig + '/' + plot_savename, dpi=plot_dpi)
+            plot_savename = (
+                plot_filename
+                + "_apatite_zircon_"
+                + str(plot_dpi)
+                + "dpi."
+                + plot_file_format
+            )
+        plt.savefig(wd_orig + "/" + plot_savename, dpi=plot_dpi)
 
     # Save plot if requested
     if display_plot:
@@ -1110,12 +1473,38 @@ def rate_vs_radius_eu(num_points=21, rate_min=0.1, rate_max=100.0, temp_max=250.
 
 
 # Define function for creating plot of cooling rates
-def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0, ap_u1=1.0, ap_u2=20.0, ap_u3=150.0,
-                   zr_u1=10.0, zr_u2=200.0, zr_u3=4000.0, ap_rad=45.0, zr_rad=60.0, ap_thorium=0.0, zr_thorium=0.0,
-                   ahe_uncertainty=0.1, aft_uncertainty=0.2, zhe_uncertainty=0.1, plot_type=3, plot_age_min=0.5,
-                   plot_age_max=1800.0, plot_tc_min=0.0, plot_tc_max=200.0, save_plot=False,
-                   plot_file_format='pdf', plot_dpi=300, plot_style='seaborn-darkgrid', display_plot=True,
-                   clean_up_files=True, verbose=False, use_widget=False):
+def rate_vs_age_tc(
+    num_points=101,
+    cooling_rate_min=0.1,
+    cooling_rate_max=100.0,
+    temp_max=350.0,
+    ap_u1=1.0,
+    ap_u2=20.0,
+    ap_u3=150.0,
+    zr_u1=10.0,
+    zr_u2=200.0,
+    zr_u3=4000.0,
+    ap_rad=45.0,
+    zr_rad=60.0,
+    ap_thorium=0.0,
+    zr_thorium=0.0,
+    ahe_uncertainty=0.1,
+    aft_uncertainty=0.2,
+    zhe_uncertainty=0.1,
+    plot_type=3,
+    plot_age_min=0.5,
+    plot_age_max=1800.0,
+    plot_tc_min=0.0,
+    plot_tc_max=200.0,
+    save_plot=False,
+    plot_file_format="pdf",
+    plot_dpi=300,
+    plot_style="seaborn-darkgrid",
+    display_plot=True,
+    clean_up_files=True,
+    verbose=False,
+    use_widget=False,
+):
     """
     Calculates thermochronometer ages and closure temperatures for different cooling rates and effective uranium
     concentrations.
@@ -1125,11 +1514,11 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
     num_points : int, default=101
         Number of points along x and y axes where ages/closure temperatures are
         calculated.
-    rate_min : float, default=0.1
+    cooling_rate_min : float, default=0.1
         Minimum cooling rate in degrees C per Myr.
-    rate_max : float, default=100.0
+    cooling_rate_max : float, default=100.0
         Maximum cooling rate in degrees C per Myr.
-    temp_max : float, default=250.0
+    temp_max : float, default=350.0
         Max temperature for cooling history (in degrees C).
     ap_u1 : float, default=1.0
         Apatite uranium concentration in ppm for upper plot panel.
@@ -1204,7 +1593,9 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
     try:
         from IPython.display import display
     except ModuleNotFoundError:
-        print("Warning: IPython.display module not found. Disabling graphical progress bar.")
+        print(
+            "Warning: IPython.display module not found. Disabling graphical progress bar."
+        )
         use_widget = False
 
     # Ensure relative paths work by setting working dir to dir containing this script file
@@ -1219,24 +1610,30 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
 
     # Set plot file name prefix
     if plot_type == 1:
-        plot_filename = 'rate_vs_tc'
+        plot_filename = "rate_vs_tc"
     elif plot_type == 2:
-        plot_filename = 'rate_vs_age'
+        plot_filename = "rate_vs_age"
     elif plot_type == 3:
-        plot_filename = 'rate_vs_age_tc'
+        plot_filename = "rate_vs_age_tc"
     else:
-        raise ValueError('Bad value for plot_type. Must be 1, 2, or 3.')
+        raise ValueError("Bad value for plot_type. Must be 1, 2, or 3.")
 
     # Define cooling rates to consider
-    rates = np.logspace(start=np.log10(rate_min), stop=np.log10(rate_max), num=num_points)
+    rates = np.logspace(
+        start=np.log10(cooling_rate_min),
+        stop=np.log10(cooling_rate_max),
+        num=num_points,
+    )
 
     # Plot titles
-    title_list = [f'Low eU (ap={ap_u_list[0]:.1f}, zr={zr_u_list[0]:.1f} ppm)',
-                  f'Intermediate eU (ap={ap_u_list[1]:.1f}, zr={zr_u_list[1]:.1f} ppm)',
-                  f'High eU (ap={ap_u_list[2]:.1f}, zr={zr_u_list[2]:.1f} ppm)']
+    title_list = [
+        f"Low eU (ap={ap_u_list[0]:.1f}, zr={zr_u_list[0]:.1f} ppm)",
+        f"Intermediate eU (ap={ap_u_list[1]:.1f}, zr={zr_u_list[1]:.1f} ppm)",
+        f"High eU (ap={ap_u_list[2]:.1f}, zr={zr_u_list[2]:.1f} ppm)",
+    ]
 
     # Define time-temperature history filename
-    tt_file = 'simple_time_temp.txt'
+    tt_file = "simple_time_temp.txt"
 
     # Get age calculation executable(s) to use
     rdaam_command = get_tc_exec("RDAAM_He")
@@ -1247,11 +1644,11 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
 
     # Set model type string
     if plot_type == 1:
-        model_type = 'cooling rate versus closure temperature'
+        model_type = "cooling rate versus closure temperature"
     elif plot_type == 2:
-        model_type = 'cooling rate versus age'
+        model_type = "cooling rate versus age"
     elif plot_type == 3:
-        model_type = 'cooling rate versus age and closure temperature'
+        model_type = "cooling rate versus age and closure temperature"
 
     # Set plot style
     plt.style.use(plot_style)
@@ -1268,10 +1665,10 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
             value=0,
             min=0,
             max=total_models,
-            description='Calculating:',
-            bar_style='',  # 'success', 'info', 'warning', 'danger' or ''
-            style={'bar_color': '#ff6666'},
-            orientation='horizontal'
+            description="Calculating:",
+            bar_style="",  # 'success', 'info', 'warning', 'danger' or ''
+            style={"bar_color": "#ff6666"},
+            orientation="horizontal",
         )
         display(s)
 
@@ -1296,32 +1693,52 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
                     s.value = model_count
                 else:
                     print(
-                        f'Calculating {model_type} - {int(round(100 * model_count / total_models)):3d}% ({model_count:5d} / {total_models:5d})\r',
-                        end="")
+                        f"Calculating {model_type} - {int(round(100 * model_count / total_models)):3d}% ({model_count:5d} / {total_models:5d})\r",
+                        end="",
+                    )
 
             # Define thermal history
             start_time = temp_max / rate
-            with open(tt_file, 'w') as f:
-                f.write('0.0,0.0\n')
-                f.write('{0:.4f},{1:.1f}'.format(start_time, temp_max))
+            with open(tt_file, "w") as f:
+                f.write("0.0,0.0\n")
+                f.write("{0:.4f},{1:.1f}".format(start_time, temp_max))
 
             # Calculate He ages
-            command = rdaam_command + ' ' + tt_file + ' ' + str(ap_rad) + ' ' + str(ap_uranium) + ' ' + str(
-                ap_thorium) + ' ' + str(zr_rad) + ' ' + str(zr_uranium) + ' ' + str(zr_thorium)
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            command = (
+                rdaam_command
+                + " "
+                + tt_file
+                + " "
+                + str(ap_rad)
+                + " "
+                + str(ap_uranium)
+                + " "
+                + str(ap_thorium)
+                + " "
+                + str(zr_rad)
+                + " "
+                + str(zr_uranium)
+                + " "
+                + str(zr_thorium)
+            )
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
 
             # Parse output for ages
             stdout = p.stdout.readlines()
-            corr_ahe_age = stdout[0].split()[7].decode('UTF-8')
-            corr_zhe_age = stdout[1].split()[7].decode('UTF-8')
+            corr_ahe_age = stdout[0].split()[7].decode("UTF-8")
+            corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
 
             # Calculate AFT age
-            command = ketch_command + ' ' + tt_file
-            p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            command = ketch_command + " " + tt_file
+            p = subprocess.Popen(
+                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
 
             # Parse output for AFT age
             stdout = p.stdout.readlines()
-            aft_age = stdout[0].split()[4][:-1].decode('UTF-8')
+            aft_age = stdout[0].split()[4][:-1].decode("UTF-8")
 
             # Use predicted ages to get closure temperature
             tc_interp = interp1d([0.0, start_time], [0.0, temp_max])
@@ -1341,7 +1758,8 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
             # Echo ages for this iteration
             if verbose:
                 print(
-                    f'AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); AFT: {float(aft_age):.2f} Ma (Tc: {aft_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C) -- total time: {start_time:.1f} Myr')
+                    f"AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); AFT: {float(aft_age):.2f} Ma (Tc: {aft_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C) -- total time: {start_time:.1f} Myr"
+                )
 
         # Assign uncertainties if plotting ages
         if plot_type != 1:
@@ -1355,44 +1773,74 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
 
         # Create plots for rate versus closure temperature
         if plot_type == 1:
-            ax[i].semilogx(rate_list, ahe_tc_list, label='Apatite (U-Th)/He')
-            ax[i].semilogx(rate_list, aft_tc_list, label='Apatite FT')
-            ax[i].semilogx(rate_list, zhe_tc_list, label='Zircon (U-Th)/He')
+            ax[i].semilogx(rate_list, ahe_tc_list, label="Apatite (U-Th)/He")
+            ax[i].semilogx(rate_list, aft_tc_list, label="Apatite FT")
+            ax[i].semilogx(rate_list, zhe_tc_list, label="Zircon (U-Th)/He")
 
         # Create plots for rate versus age
         if plot_type == 2:
-            ax[i].fill_between(rate_list, ahe_age_min, ahe_age_max, alpha=0.5,
-                               label=f'Apatite (U-Th)/He age ± {ahe_uncertainty * 100:.0f}%')
-            ax[i].fill_between(rate_list, aft_age_min, aft_age_max, alpha=0.5,
-                               label=f'Apatite FT age ± {aft_uncertainty * 100:.0f}%')
-            ax[i].fill_between(rate_list, zhe_age_min, zhe_age_max, alpha=0.5,
-                               label=f'Zircon (U-Th)/He age ± {zhe_uncertainty * 100:.0f}%')
+            ax[i].fill_between(
+                rate_list,
+                ahe_age_min,
+                ahe_age_max,
+                alpha=0.5,
+                label=f"Apatite (U-Th)/He age ± {ahe_uncertainty * 100:.0f}%",
+            )
+            ax[i].fill_between(
+                rate_list,
+                aft_age_min,
+                aft_age_max,
+                alpha=0.5,
+                label=f"Apatite FT age ± {aft_uncertainty * 100:.0f}%",
+            )
+            ax[i].fill_between(
+                rate_list,
+                zhe_age_min,
+                zhe_age_max,
+                alpha=0.5,
+                label=f"Zircon (U-Th)/He age ± {zhe_uncertainty * 100:.0f}%",
+            )
 
             # Scale axes
-            ax[i].set_xscale('log')
-            ax[i].set_yscale('log')
+            ax[i].set_xscale("log")
+            ax[i].set_yscale("log")
 
         # Create plots for rate versus age and closure temperature
         if plot_type == 3:
             # Plot ages and closure temperatures (low eU)
-            ax[i][0].fill_between(rate_list, ahe_age_min, ahe_age_max, alpha=0.5,
-                                  label=f'Apatite (U-Th)/He age ± {ahe_uncertainty * 100:.0f}%')
-            ax[i][1].plot(rate_list, ahe_tc_list, label='Apatite (U-Th)/He')
+            ax[i][0].fill_between(
+                rate_list,
+                ahe_age_min,
+                ahe_age_max,
+                alpha=0.5,
+                label=f"Apatite (U-Th)/He age ± {ahe_uncertainty * 100:.0f}%",
+            )
+            ax[i][1].plot(rate_list, ahe_tc_list, label="Apatite (U-Th)/He")
 
             # Plot ages and closure temperatures (intermediate eU)
-            ax[i][0].fill_between(rate_list, aft_age_min, aft_age_max, alpha=0.5,
-                                  label=f'Apatite FT age ± {aft_uncertainty * 100:.0f}%')
-            ax[i][1].plot(rate_list, aft_tc_list, label='Apatite FT')
+            ax[i][0].fill_between(
+                rate_list,
+                aft_age_min,
+                aft_age_max,
+                alpha=0.5,
+                label=f"Apatite FT age ± {aft_uncertainty * 100:.0f}%",
+            )
+            ax[i][1].plot(rate_list, aft_tc_list, label="Apatite FT")
 
             # Plot ages and closure temperatures (high eU)
-            ax[i][0].fill_between(rate_list, zhe_age_min, zhe_age_max, alpha=0.5,
-                                  label=f'Zircon (U-Th)/He age ± {zhe_uncertainty * 100:.0f}%')
-            ax[i][1].plot(rate_list, zhe_tc_list, label='Zircon (U-Th)/He')
+            ax[i][0].fill_between(
+                rate_list,
+                zhe_age_min,
+                zhe_age_max,
+                alpha=0.5,
+                label=f"Zircon (U-Th)/He age ± {zhe_uncertainty * 100:.0f}%",
+            )
+            ax[i][1].plot(rate_list, zhe_tc_list, label="Zircon (U-Th)/He")
 
             # Set axis scalings
-            ax[i][0].set_xscale('log')
-            ax[i][0].set_yscale('log')
-            ax[i][1].set_xscale('log')
+            ax[i][0].set_xscale("log")
+            ax[i][0].set_yscale("log")
+            ax[i][1].set_xscale("log")
 
         # Format axis tick labels
         if plot_type == 3:
@@ -1405,31 +1853,31 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
 
         # Set axis range and add axis labels
         if plot_type == 1:
-            ax[i].set_xlim([rate_min, rate_max])
+            ax[i].set_xlim([cooling_rate_min, cooling_rate_max])
             ax[i].set_ylim([plot_tc_min, plot_tc_max])
-            ax[i].set_ylabel('Closure temperature (°C)')
+            ax[i].set_ylabel("Closure temperature (°C)")
             if i == 2:
-                ax[i].set_xlabel('Cooling rate (°C/Myr)')
+                ax[i].set_xlabel("Cooling rate (°C/Myr)")
 
         # Set axis range and add axis labels
         if plot_type == 2:
-            ax[i].set_xlim([rate_min, rate_max])
+            ax[i].set_xlim([cooling_rate_min, cooling_rate_max])
             ax[i].set_ylim([plot_age_min, plot_age_max])
-            ax[i].set_ylabel('Age (Ma)')
+            ax[i].set_ylabel("Age (Ma)")
             if i == 2:
-                ax[i].set_xlabel('Cooling rate (°C/Myr)')
+                ax[i].set_xlabel("Cooling rate (°C/Myr)")
 
         # Set axis ranges and add axis labels
         if plot_type == 3:
-            ax[i][0].set_xlim([rate_min, rate_max])
+            ax[i][0].set_xlim([cooling_rate_min, cooling_rate_max])
             ax[i][0].set_ylim([plot_age_min, plot_age_max])
-            ax[i][1].set_xlim([rate_min, rate_max])
+            ax[i][1].set_xlim([cooling_rate_min, cooling_rate_max])
             ax[i][1].set_ylim([plot_tc_min, plot_tc_max])
-            ax[i][0].set_ylabel('Age (Ma)')
-            ax[i][1].set_ylabel('Closure temperature (°C)')
+            ax[i][0].set_ylabel("Age (Ma)")
+            ax[i][1].set_ylabel("Closure temperature (°C)")
             if i == 2:
-                ax[i][0].set_xlabel('Cooling rate (°C/Myr)')
-                ax[i][1].set_xlabel('Cooling rate (°C/Myr)')
+                ax[i][0].set_xlabel("Cooling rate (°C/Myr)")
+                ax[i][1].set_xlabel("Cooling rate (°C/Myr)")
 
         # Add subplot titles
         if plot_type == 3:
@@ -1447,7 +1895,7 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
     # Delete temporary tt file
     if clean_up_files:
         os.remove(tt_file)
-        os.remove('ft_length.csv')
+        os.remove("ft_length.csv")
 
     # Use tight layout
     plt.tight_layout()
@@ -1455,8 +1903,8 @@ def rate_vs_age_tc(num_points=101, rate_min=0.1, rate_max=100.0, temp_max=250.0,
     # Save plot if requested
     if save_plot:
         # Define plot filename and save plot
-        plot_filename = plot_filename + '_' + str(plot_dpi) + 'dpi.' + plot_file_format
-        plt.savefig(wd_orig + '/' + plot_filename, dpi=plot_dpi)
+        plot_filename = plot_filename + "_" + str(plot_dpi) + "dpi." + plot_file_format
+        plt.savefig(wd_orig + "/" + plot_filename, dpi=plot_dpi)
 
     # Show plot if requested
     if display_plot:
