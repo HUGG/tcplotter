@@ -280,17 +280,19 @@ def eu_vs_radius(
 
     # Check to see whether ipywidgets and IPython are available for widget use
     # If not, disable widgets and display a warning
-    try:
-        import ipywidgets as widgets
-    except ModuleNotFoundError:
-        print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
+    if use_widget:
+        try:
+            import ipywidgets as widgets
+        except ModuleNotFoundError:
+            print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
         use_widget = False
-    try:
-        from IPython.display import display
-    except ModuleNotFoundError:
-        print(
-            "Warning: IPython.display module not found. Disabling graphical progress bar."
-        )
+    if use_widget:
+        try:
+            from IPython.display import display
+        except ModuleNotFoundError:
+            print(
+                "Warning: IPython.display module not found. Disabling graphical progress bar."
+            )
         use_widget = False
 
     # Ensure relative paths work by setting working dir to dir containing this script file
@@ -382,7 +384,7 @@ def eu_vs_radius(
         )
 
     # Create visual progress bar, if enabled
-    if use_widget:
+    if use_widget and not verbose:
         s = widgets.IntProgress(
             value=0,
             min=0,
@@ -899,18 +901,20 @@ def rate_vs_radius_eu(
 
     # Check to see whether ipywidgets and IPython are available for widget use
     # If not, disable widgets and display a warning
-    try:
-        import ipywidgets as widgets
-    except ModuleNotFoundError:
-        print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
-        use_widget = False
-    try:
-        from IPython.display import display
-    except ModuleNotFoundError:
-        print(
-            "Warning: IPython.display module not found. Disabling graphical progress bar."
-        )
-        use_widget = False
+    if use_widget:
+        try:
+            import ipywidgets as widgets
+        except ModuleNotFoundError:
+            print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
+            use_widget = False
+    if use_widget:
+        try:
+            from IPython.display import display
+        except ModuleNotFoundError:
+            print(
+                "Warning: IPython.display module not found. Disabling graphical progress bar."
+            )
+            use_widget = False
 
     # Ensure relative paths work by setting working dir to dir containing this script file
     wd_orig = os.getcwd()
@@ -990,7 +994,7 @@ def rate_vs_radius_eu(
     zr_y_list2 = []
 
     # Create visual progress bar, if enabled
-    if use_widget:
+    if use_widget and not verbose:
         s = widgets.IntProgress(
             value=0,
             min=0,
@@ -1585,18 +1589,20 @@ def rate_vs_age_tc(
 
     # Check to see whether ipywidgets and IPython are available for widget use
     # If not, disable widgets and display a warning
-    try:
-        import ipywidgets as widgets
-    except ModuleNotFoundError:
-        print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
-        use_widget = False
-    try:
-        from IPython.display import display
-    except ModuleNotFoundError:
-        print(
-            "Warning: IPython.display module not found. Disabling graphical progress bar."
-        )
-        use_widget = False
+    if use_widget:
+        try:
+            import ipywidgets as widgets
+        except ModuleNotFoundError:
+            print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
+            use_widget = False
+    if use_widget:
+        try:
+            from IPython.display import display
+        except ModuleNotFoundError:
+            print(
+                "Warning: IPython.display module not found. Disabling graphical progress bar."
+            )
+            use_widget = False
 
     # Ensure relative paths work by setting working dir to dir containing this script file
     wd_orig = os.getcwd()
@@ -1660,7 +1666,7 @@ def rate_vs_age_tc(
         fig, ax = plt.subplots(3, 1, figsize=(6, 10))
 
     # Create visual progress bar, if enabled
-    if use_widget:
+    if use_widget and not verbose:
         s = widgets.IntProgress(
             value=0,
             min=0,
