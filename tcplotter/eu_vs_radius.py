@@ -53,7 +53,7 @@ def main():
         "NOTE: Present-day point should be first in list. Option for cooling "
         "history type 2.",
         nargs="+",
-        default=[0.0, 10.0, 25.0],
+        default=[0.0, 10.0, 25.0, 35.0],
         type=float,
     )
     parser.add_argument(
@@ -63,7 +63,7 @@ def main():
         "Present-day point should be first in list. Option for cooling history "
         "type 2.",
         nargs="+",
-        default=[0.0, 200.0, 250.0],
+        default=[0.0, 75.0, 50.0, 350.0],
         type=float,
     )
     parser.add_argument(
