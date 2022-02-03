@@ -285,7 +285,7 @@ def eu_vs_radius(
             import ipywidgets as widgets
         except ModuleNotFoundError:
             print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
-        use_widget = False
+            use_widget = False
     if use_widget:
         try:
             from IPython.display import display
@@ -293,7 +293,7 @@ def eu_vs_radius(
             print(
                 "Warning: IPython.display module not found. Disabling graphical progress bar."
             )
-        use_widget = False
+            use_widget = False
 
     # Ensure relative paths work by setting working dir to dir containing this script file
     wd_orig = os.getcwd()
