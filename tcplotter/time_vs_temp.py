@@ -83,6 +83,13 @@ def main():
         type=str,
     )
     parser.add_argument(
+        "--no-fill-between",
+        dest="no_fill_between",
+        help="Do not fill region between min, max cooling rate lines",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         "--no-display-plot",
         dest="no_display_plot",
         help="Do not display plot on the screen",
@@ -95,6 +102,7 @@ def main():
     # Flip command-line flag to be opposite for function call
     # Function call expects display_plot = True for plot to be displayed
     display_plot = not args.no_display_plot
+    fill_between = not args.no_fill_between
 
     time_vs_temp(
         cooling_rate_min=args.cooling_rate_min,
@@ -107,6 +115,7 @@ def main():
         plot_file_format=args.plot_file_format,
         plot_dpi=args.plot_dpi,
         plot_style=args.plot_style,
+        fill_between=fill_between,
         display_plot=display_plot,
     )
 
