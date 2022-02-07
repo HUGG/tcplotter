@@ -4,6 +4,8 @@
 #pragma hdrstop
 
 #include "RDAAM.h"
+#include <stdio.h>
+#include <cstdlib>
 
 //---------------------------------------------------------------------------
 
