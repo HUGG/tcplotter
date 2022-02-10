@@ -1503,7 +1503,9 @@ def rate_vs_age_tc(
     save_plot=False,
     plot_file_format="pdf",
     plot_dpi=300,
-    plot_style="seaborn-darkgrid",
+    plot_style="seaborn-colorblind",
+    plot_alpha=0.6,
+    plot_grid=True,
     display_plot=True,
     clean_up_files=True,
     verbose=False,
@@ -1570,8 +1572,12 @@ def rate_vs_age_tc(
         File format for saving plot to file (examples: png, pdf, svg, eps).
     plot_dpi : int, default=300
         Saved plot resolution in dots per inch.
-    plot_style : str, default='seaborn-darkgrid'
+    plot_style : str, default='seaborn-colorblind'
         Style sheet used for plotting. See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html.
+    plot_alpha : float, default=0.6
+        Transparency used for plotting fill colors for age swath plots.
+    plot_grid : bool, default=True
+        Flag for whether or not to display the plot grid lines.
     display_plot : bool, default=True
         Flag for whether to display the plot.
     clean_up_files : bool, default=True
@@ -1789,21 +1795,21 @@ def rate_vs_age_tc(
                 rate_list,
                 ahe_age_min,
                 ahe_age_max,
-                alpha=0.5,
+                alpha=plot_alpha,
                 label=f"Apatite (U-Th)/He age ± {ahe_uncertainty * 100:.0f}%",
             )
             ax[i].fill_between(
                 rate_list,
                 aft_age_min,
                 aft_age_max,
-                alpha=0.5,
+                alpha=plot_alpha,
                 label=f"Apatite FT age ± {aft_uncertainty * 100:.0f}%",
             )
             ax[i].fill_between(
                 rate_list,
                 zhe_age_min,
                 zhe_age_max,
-                alpha=0.5,
+                alpha=plot_alpha,
                 label=f"Zircon (U-Th)/He age ± {zhe_uncertainty * 100:.0f}%",
             )
 
@@ -1818,7 +1824,7 @@ def rate_vs_age_tc(
                 rate_list,
                 ahe_age_min,
                 ahe_age_max,
-                alpha=0.5,
+                alpha=plot_alpha,
                 label=f"Apatite (U-Th)/He age ± {ahe_uncertainty * 100:.0f}%",
             )
             ax[i][1].plot(rate_list, ahe_tc_list, label="Apatite (U-Th)/He")
@@ -1828,7 +1834,7 @@ def rate_vs_age_tc(
                 rate_list,
                 aft_age_min,
                 aft_age_max,
-                alpha=0.5,
+                alpha=plot_alpha,
                 label=f"Apatite FT age ± {aft_uncertainty * 100:.0f}%",
             )
             ax[i][1].plot(rate_list, aft_tc_list, label="Apatite FT")
@@ -1838,7 +1844,7 @@ def rate_vs_age_tc(
                 rate_list,
                 zhe_age_min,
                 zhe_age_max,
-                alpha=0.5,
+                alpha=plot_alpha,
                 label=f"Zircon (U-Th)/He age ± {zhe_uncertainty * 100:.0f}%",
             )
             ax[i][1].plot(rate_list, zhe_tc_list, label="Zircon (U-Th)/He")
@@ -1892,6 +1898,21 @@ def rate_vs_age_tc(
         else:
             ax[i].set_title(title_list[i])
 
+        # Enable/disable gridlines
+        if plot_grid:
+            if plot_type == 3:
+                ax[i][0].grid(visible=True)
+                ax[i][1].grid(visible=True)
+            else:
+                ax[i].grid(visible=True)
+        else:
+            if plot_type == 3:
+                ax[i][0].grid(visible=False)
+                ax[i][1].grid(visible=False)
+            else:
+                ax[i].grid(visible=False)
+
+        # Add legend
         if plot_type == 3:
             ax[i][0].legend()
             ax[i][1].legend()

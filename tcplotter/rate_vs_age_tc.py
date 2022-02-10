@@ -196,8 +196,22 @@ def main():
         "--plot-style",
         dest="plot_style",
         help="Style sheet used for plotting. See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html.",
-        default="seaborn-darkgrid",
+        default="seaborn-colorblind",
         type=str,
+    )
+    parser.add_argument(
+        "--plot-alpha",
+        dest="plot_alpha",
+        help="Transparency used for plotting fill colors for age swath plots",
+        default=0.6,
+        type=float,
+    )
+    parser.add_argument(
+        "--no-plot-grid",
+        dest="no_plot_grid",
+        help="Do not display grid lines on plot",
+        action="store_true",
+        default=False,
     )
     parser.add_argument(
         "--no-display-plot",
@@ -225,8 +239,10 @@ def main():
 
     # Flip command-line flags to be opposite for function call
     # Function call expects
+    # - plot_grid = True for grid lines to be added to plot
     # - display_plot = True for plot to be displayed
     # - clean_up_files = True for temporary files to be deleted
+    plot_grid = not args.no_plot_grid
     display_plot = not args.no_display_plot
     clean_up_files = not args.no_clean_up_files
 
@@ -255,6 +271,10 @@ def main():
         plot_tc_max=args.plot_tc_max,
         save_plot=args.save_plot,
         plot_file_format=args.plot_file_format,
+        plot_dpi=args.plot_dpi,
+        plot_style=args.plot_style,
+        plot_alpha=args.plot_alpha,
+        plot_grid=plot_grid,
         display_plot=display_plot,
         clean_up_files=clean_up_files,
         verbose=args.verbose,
