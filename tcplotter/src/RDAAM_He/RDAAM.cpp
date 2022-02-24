@@ -918,7 +918,7 @@ void RDAAM_FreeCalcArrays()
 	if (difft_np1 != NULL) free_dvector(difft_np1,0);
 }
 
-void nrerror(char *error_text)
+void nrerror(const char *error_text)
 {
 	fprintf(stderr,"Run-time error: %s\n", error_text);
 
