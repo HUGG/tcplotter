@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/444915688.svg)](https://zenodo.org/badge/latestdoi/444915688)
 
-T<sub>c</sub>plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots presented in the article [Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers](https://gchron.copernicus.org/preprints/gchron-2021-29/) by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
+T<sub>c</sub>plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots presented in the article [Short communication: Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers](https://doi.org/10.5194/gchron-2021-29) by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
 The code is designed to be easy to use to either reproduce plots from the article or customize the plots for your own use.
 Below you will find some essential details about using the code and detailed documentation can be found on the [tcplotter documentation site](https://tcplotter.readthedocs.io/).
 
@@ -68,11 +68,23 @@ To find more information about options available for command-line use you can in
 
 ## Attribution
 
-When including plots generated using T<sub>c</sub>plotter in publications or presentations, please cite the following article:
+### How to cite the code
 
-- Whipp, D. M., Kellett, D. A., Coutand, I, & Ketcham, R. A. (in revision). Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers. *Geochronology*, doi: [10.5194/gchron-2021-29](https://doi.org/10.5194/gchron-2021-29).
+When including plots generated using T<sub>c</sub>plotter in publications or presentations, please cite the following:
 
-The age prediction software used for calculating apatite and zircon (U-Th)/He and apatite fission-track ages was written by Richard Ketcham at the University of Texas, USA. Results published using this software should cite the articles below:
+- Whipp, D. M. and Ketcham, R. A.: tcplotter: a Python package for creating and customizing thermochronometer age and closure temperature plots, Zenodo [code], <https://doi.org/10.5281/zenodo.5958939>, 2022.
+
+### How to cite the paper
+
+You're also welcome to cite the manuscript related to T<sub>c</sub>plotter when referencing ideas from the article:
+
+- Whipp, D., Kellett, D., and Coutand, I.: Short communication: Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers, Geochronology Discuss. [preprint], <https://doi.org/10.5194/gchron-2021-29>, in review, 2021. 
+
+*Please note that this is the pre-print reference and it is preferable to cite the final article once available*.
+
+### How to cite related articles
+
+The age prediction software used for calculating apatite and zircon (U-Th)/He and apatite fission-track ages was written by Richard Ketcham at the University of Texas, USA. Results published using this software should also cite the articles below:
 
 - Ketcham, R. A., Donelick, R. A., & Carlson, W. D.: Variability of apatite fission-track annealing kinetics III: Extrapolation to geological time scales. American Mineralogist, 84, 1235-1255, doi: [10.2138/am-1999-0903](https://doi.org/10.2138/am-1999-0903), 1999.
 
