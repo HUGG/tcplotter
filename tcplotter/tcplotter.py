@@ -29,6 +29,48 @@ def get_tc_exec(command):
     return tc_exec
 
 
+# Function for reading age data file
+def read_age_data(file):
+    """Reads in age data from a csv file"""
+    # Make empty lists for column values
+    ahe_age = []
+    ahe_uncertainty = []
+    ahe_eu = []
+    ahe_radius = []
+    zhe_age = []
+    zhe_uncertainty = []
+    zhe_eu = []
+    zhe_radius = []
+
+    # Read in data file and create nested lists of values
+    with open(file, "r") as file:
+        data = file.read().splitlines()
+        for i in range(1, len(data)):
+            # Split lines by commas
+            data[i] = data[i].split(",")
+            # Strip whitespace
+            data[i] = [line.strip() for line in data[i]]
+            # Use values only if the eU and radius were provided
+            if (len(data[i][3]) > 0) and (len(data[i][4]) > 0):
+                # Append AHe data if the age type is AHe
+                if data[i][0].lower() == "ahe":
+                    ahe_age.append(float(data[i][1]))
+                    ahe_uncertainty.append(float(data[i][2]))
+                    ahe_eu.append(float(data[i][3]))
+                    ahe_radius.append(float(data[i][4]))
+                # Append ZHe data if the age type is ZHe
+                elif data[i][0].lower() == "zhe":
+                    zhe_age.append(float(data[i][1]))
+                    zhe_uncertainty.append(float(data[i][2]))
+                    zhe_eu.append(float(data[i][3]))
+                    zhe_radius.append(float(data[i][4]))
+        # Create new lists with data file values
+        ahe_data = [ahe_age, ahe_uncertainty, ahe_eu, ahe_radius]
+        zhe_data = [zhe_age, zhe_uncertainty, zhe_eu, zhe_radius]
+
+    return ahe_data, zhe_data
+
+
 # Define function for creating plot of cooling rates
 def time_vs_temp(
     cooling_rate_min=0.1,
@@ -195,6 +237,7 @@ def eu_vs_radius(
     plot_alpha=1.0,
     plot_contour_lines=12,
     plot_contour_fills=256,
+    age_data_file="",
     display_plot=True,
     tt_plot=False,
     verbose=False,
@@ -268,6 +311,8 @@ def eu_vs_radius(
         Number of contour lines used for plotting.
     plot_contour_fills : int, default=256
         Number of contour fill colors from the selected colormap.
+    age_data_file : str, default=''
+        Filename for file containing measured thermochronometer ages.
     display_plot : bool, default=True
         Flag for whether to display the plot.
     tt_plot : bool, default=False
@@ -294,6 +339,13 @@ def eu_vs_radius(
                 "Warning: IPython.display module not found. Disabling graphical progress bar."
             )
             use_widget = False
+
+    # Read in measured ages from file, if age_data_file is defined
+    if len(age_data_file) > 0:
+        ahe_age_data, zhe_age_data = read_age_data(age_data_file)
+    else:
+        ahe_age_data = []
+        zhe_age_data = []
 
     # Ensure relative paths work by setting working dir to dir containing this script file
     wd_orig = os.getcwd()
@@ -350,11 +402,24 @@ def eu_vs_radius(
     # Set plot style
     plt.style.use(plot_style)
 
-    # Create figure
+    # Define plot size and number of subplots
+    fig_width = 10
     if plot_type < 3:
-        fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+        fig_height = 5
+        # Make plot longer if plotting data
+        if plot_type == 1:
+            if len(ahe_age_data) > 0: fig_height += 1.5
+        else:
+            if len(zhe_age_data) > 0: fig_height += 1.5
+        # Create figure and axes
+        fig, ax = plt.subplots(1, 2, figsize=(fig_width, fig_height))
     else:
-        fig, ax = plt.subplots(2, 2, figsize=(10, 10))
+        fig_height = 10
+        # Make plot longer if plotting data
+        if (len(ahe_age_data) > 0): fig_height += 1.5
+        if (len(zhe_age_data) > 0): fig_height += 1.5
+        # Create figure and axes
+        fig, ax = plt.subplots(2, 2, figsize=(fig_width, fig_height))
 
     # Set plot loop variables
     ap_x = ap_eu
@@ -475,10 +540,17 @@ def eu_vs_radius(
             ahe_age_list,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Add age contour labels
         ax[0].clabel(ap_contours_age)
+        # Determine bounds for contour colors if plotting age data
+        if len(ahe_age_data) > 0:
+            age_min = min(min(ahe_age_list), min(ahe_age_data[0]))
+            age_max = max(max(ahe_age_list), max(ahe_age_data[0]))
+        else:
+            age_min = min(ahe_age_list)
+            age_max = max(ahe_age_list)
         # Create age contour fill
         ap_contourf_age = ax[0].tricontourf(
             ap_x_list,
@@ -486,8 +558,27 @@ def eu_vs_radius(
             ahe_age_list,
             plot_contour_fills,
             cmap=plot_colormap,
+            vmin=age_min,
+            vmax=age_max,
             alpha=plot_alpha,
         )
+        if len(ahe_age_data) > 0:
+            age_data_plot = ax[0].scatter(
+                x=ahe_age_data[2],
+                y=ahe_age_data[3],
+                c=ahe_age_data[0],
+                edgecolors="black",
+                cmap=plot_colormap,
+                vmin=age_min,
+                vmax=age_max,
+                label="AHe data"
+            )
+            ax[0].set_xlim([min(ap_x_list), max(ap_x_list)])
+            ax[0].set_ylim([min(ap_y_list), max(ap_y_list)])
+            ax[0].legend()
+
+            # Plot the colorbar if plotting data
+            fig.colorbar(age_data_plot, ax=ax[0], orientation="horizontal", label="Apatite (U-Th)/He age (Ma)")
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_age.collections:
@@ -514,6 +605,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
+        if len(ahe_age_data) > 0:
+            # Plot the colorbar if plotting data
+            fig.colorbar(ap_contourf_tc, ax=ax[1], orientation="horizontal", label="Apatite (U-Th)/He closure temperature (°C)")
+
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
             c.set_edgecolor("face")
@@ -531,6 +626,13 @@ def eu_vs_radius(
         )
         # Add age contour labels
         ax[0].clabel(zr_contours_age)
+        # Determine bounds for contour colors if plotting age data
+        if len(zhe_age_data) > 0:
+            age_min = min(min(zhe_age_list), min(zhe_age_data[0]))
+            age_max = max(max(zhe_age_list), max(zhe_age_data[0]))
+        else:
+            age_min = min(zhe_age_list)
+            age_max = max(zhe_age_list)
         # Create age contour fill
         zr_contourf_age = ax[0].tricontourf(
             zr_x_list,
@@ -538,8 +640,27 @@ def eu_vs_radius(
             zhe_age_list,
             plot_contour_fills,
             cmap=plot_colormap,
+            vmin=age_min,
+            vmax=age_max,
             alpha=plot_alpha,
         )
+        if len(zhe_age_data) > 0:
+            age_data_plot = ax[0].scatter(
+                x=zhe_age_data[2],
+                y=zhe_age_data[3],
+                c=zhe_age_data[0],
+                edgecolors="black",
+                cmap=plot_colormap,
+                vmin=age_min,
+                vmax=age_max,
+                label="ZHe data"
+            )
+            ax[0].set_xlim([min(zr_x_list), max(zr_x_list)])
+            ax[0].set_ylim([min(zr_y_list), max(zr_y_list)])
+            ax[0].legend()
+
+            # Plot the colorbar if plotting data
+            fig.colorbar(age_data_plot, ax=ax[0], orientation="horizontal", label="Zircon (U-Th)/He age (Ma)")
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_age.collections:
@@ -566,6 +687,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
+        if len(zhe_age_data) > 0:
+            # Plot the colorbar if plotting data
+            fig.colorbar(zr_contourf_tc, ax=ax[1], orientation="horizontal", label="Zircon (U-Th)/He closure temperature (°C)")
+
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc.collections:
             c.set_edgecolor("face")
@@ -583,6 +708,13 @@ def eu_vs_radius(
         )
         # Add age contour labels
         ax[0][0].clabel(ap_contours_age)
+        # Determine bounds for contour colors if plotting age data
+        if len(ahe_age_data) > 0:
+            age_min = min(min(ahe_age_list), min(ahe_age_data[0]))
+            age_max = max(max(ahe_age_list), max(ahe_age_data[0]))
+        else:
+            age_min = min(ahe_age_list)
+            age_max = max(ahe_age_list)
         # Create age contour fill
         ap_contourf_age = ax[0][0].tricontourf(
             ap_x_list,
@@ -590,8 +722,27 @@ def eu_vs_radius(
             ahe_age_list,
             plot_contour_fills,
             cmap=plot_colormap,
+            vmin=age_min,
+            vmax=age_max,
             alpha=plot_alpha,
         )
+        if len(ahe_age_data) > 0:
+            age_data_plot = ax[0][0].scatter(
+                x=ahe_age_data[2],
+                y=ahe_age_data[3],
+                c=ahe_age_data[0],
+                edgecolors="black",
+                cmap=plot_colormap,
+                vmin=age_min,
+                vmax=age_max,
+                label="AHe data"
+            )
+            ax[0][0].set_xlim([min(ap_x_list), max(ap_x_list)])
+            ax[0][0].set_ylim([min(ap_y_list), max(ap_y_list)])
+            ax[0][0].legend()
+
+            # Plot the colorbar if plotting data
+            fig.colorbar(age_data_plot, ax=ax[0][0], orientation="horizontal", label="Apatite (U-Th)/He age (Ma)")
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_age.collections:
@@ -618,6 +769,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
+        if len(ahe_age_data) > 0:
+            # Plot the colorbar if plotting data
+            fig.colorbar(ap_contourf_tc, ax=ax[0][1], orientation="horizontal", label="Apatite (U-Th)/He closure temperature (°C)")
+
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
             c.set_edgecolor("face")
@@ -633,6 +788,13 @@ def eu_vs_radius(
         )
         # Add age contour labels
         ax[1][0].clabel(zr_contours_age)
+        # Determine bounds for contour colors if plotting age data
+        if len(zhe_age_data) > 0:
+            age_min = min(min(zhe_age_list), min(zhe_age_data[0]))
+            age_max = max(max(zhe_age_list), max(zhe_age_data[0]))
+        else:
+            age_min = min(zhe_age_list)
+            age_max = max(zhe_age_list)
         # Create age contour fill
         zr_contourf_age = ax[1][0].tricontourf(
             zr_x_list,
@@ -640,8 +802,27 @@ def eu_vs_radius(
             zhe_age_list,
             plot_contour_fills,
             cmap=plot_colormap,
+            vmin=age_min,
+            vmax=age_max,
             alpha=plot_alpha,
         )
+        if len(zhe_age_data) > 0:
+            age_data_plot = ax[1][0].scatter(
+                x=zhe_age_data[2],
+                y=zhe_age_data[3],
+                c=zhe_age_data[0],
+                edgecolors="black",
+                cmap=plot_colormap,
+                vmin=age_min,
+                vmax=age_max,
+                label="ZHe data"
+            )
+            ax[1][0].set_xlim([min(zr_x_list), max(zr_x_list)])
+            ax[1][0].set_ylim([min(zr_y_list), max(zr_y_list)])
+            ax[1][0].legend()
+
+            # Plot the colorbar if plotting data
+            fig.colorbar(age_data_plot, ax=ax[1][0], orientation="horizontal", label="Zircon (U-Th)/He age (Ma)")
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_age.collections:
@@ -668,11 +849,15 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
+        if len(zhe_age_data) > 0:
+            # Plot the colorbar if plotting data
+            fig.colorbar(zr_contourf_tc, ax=ax[1][1], orientation="horizontal", label="Zircon (U-Th)/He closure temperature (°C)")
+
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc.collections:
             c.set_edgecolor("face")
 
-    # Format plot
+    # Format plot labels
 
     # Apatite eU versus radius
     if plot_type == 1:
