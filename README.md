@@ -1,7 +1,8 @@
 # T<sub>c</sub>plotter code description and instructions for use
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/tcplotter.ipynb)
-[![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest) 
+[![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/tcplotter/badges/version.svg)](https://anaconda.org/conda-forge/tcplotter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/444915688.svg)](https://zenodo.org/badge/latestdoi/444915688)
 
@@ -78,9 +79,7 @@ When including plots generated using T<sub>c</sub>plotter in publications or pre
 
 You're also welcome to cite the manuscript related to T<sub>c</sub>plotter when referencing ideas from the article:
 
-- Whipp, D., Kellett, D., and Coutand, I.: Short communication: Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers, Geochronology Discuss. [preprint], <https://doi.org/10.5194/gchron-2021-29>, in review, 2021. 
-
-*Please note that this is the pre-print reference and it is preferable to cite the final article once available*.
+- Whipp, D. M., Kellett, D. A., Coutand, I., and Ketcham, R. A.: Short communication: Modeling competing effects of cooling rate, grain size, and radiation damage in low-temperature thermochronometers, *Geochronology*, *4*, 143–152, <https://doi.org/10.5194/gchron-4-143-2022>, 2022. 
 
 ### How to cite related articles
 

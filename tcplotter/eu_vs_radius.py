@@ -200,6 +200,20 @@ def main():
         type=int,
     )
     parser.add_argument(
+        "--age-data-file",
+        dest="age_data_file",
+        help="Filename for file containing measured thermochronometer ages",
+        default="",
+        type=str,
+    )
+    parser.add_argument(
+        "--calc-misfit",
+        dest="calc_misfit",
+        help="Flag for whether a misfit should be calculated for measured and predicted ages",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         "--no-display-plot",
         dest="no_display_plot",
         help="Do not display plots on the screen",
@@ -253,6 +267,8 @@ def main():
         plot_alpha=args.plot_alpha,
         plot_contour_lines=args.plot_contour_lines,
         plot_contour_fills=args.plot_contour_fills,
+        age_data_file=args.age_data_file,
+        calc_misfit=args.calc_misfit,
         display_plot=display_plot,
         tt_plot=args.tt_plot,
         verbose=args.verbose,

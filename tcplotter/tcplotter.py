@@ -4,7 +4,7 @@ from matplotlib.ticker import ScalarFormatter
 import numpy as np
 import os
 from pathlib import Path
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, RegularGridInterpolator
 import shutil
 import subprocess
 
@@ -27,6 +27,85 @@ def get_tc_exec(command):
             f"Age calculation program {command} not found. See Troubleshooting in tcplotter docs online."
         )
     return tc_exec
+
+
+# Function for reading age data file
+def read_age_data(file):
+    """Reads in age data from a csv file"""
+    # Make empty lists for column values
+    ahe_age = []
+    ahe_uncertainty = []
+    ahe_eu = []
+    ahe_radius = []
+    zhe_age = []
+    zhe_uncertainty = []
+    zhe_eu = []
+    zhe_radius = []
+
+    # Read in data file and create nested lists of values
+    with open(file, "r") as file:
+        data = file.read().splitlines()
+        for i in range(1, len(data)):
+            # Split lines by commas
+            data[i] = data[i].split(",")
+            # Strip whitespace
+            data[i] = [line.strip() for line in data[i]]
+            # Use values only if the eU and radius were provided
+            if (len(data[i][3]) > 0) and (len(data[i][4]) > 0):
+                # Append AHe data if the age type is AHe
+                if data[i][0].lower() == "ahe":
+                    ahe_age.append(float(data[i][1]))
+                    ahe_uncertainty.append(float(data[i][2]))
+                    ahe_eu.append(float(data[i][3]))
+                    ahe_radius.append(float(data[i][4]))
+                # Append ZHe data if the age type is ZHe
+                elif data[i][0].lower() == "zhe":
+                    zhe_age.append(float(data[i][1]))
+                    zhe_uncertainty.append(float(data[i][2]))
+                    zhe_eu.append(float(data[i][3]))
+                    zhe_radius.append(float(data[i][4]))
+        # Create new lists with data file values
+        ahe_data = [ahe_age, ahe_uncertainty, ahe_eu, ahe_radius]
+        zhe_data = [zhe_age, zhe_uncertainty, zhe_eu, zhe_radius]
+
+    return ahe_data, zhe_data
+
+
+def chi_squared(observed, expected, std):
+    """Returns the reduced chi-squared value for input array data."""
+    misfit = 0
+    for i in range(len(observed)):
+        misfit += (observed[i]-expected[i])**2 / std[i]**2
+    # Scale goodness-of-fit by number of ages
+    return misfit / len(observed)
+
+
+def calculate_misfit(age_data, age_type, age_list, param_x, param_y):
+    """Calculates misfit between measured and predicted ages."""
+    predicted_ages = []
+    measured_ages = []
+    std_dev = []
+    for i in range(len(age_data[0])):
+        # Create interpolation function
+        age_grid = np.array(age_list).reshape((len(param_x), len(param_y)))
+        age_interp = RegularGridInterpolator((param_x, param_y), age_grid)
+        # Append interpolated age if within the eU and radius ranges
+        # Check if value is not within eU range
+        if not (min(param_x) <= age_data[2][i] <= max(param_x)):
+            print(f"Warning: eU concentration for {age_type} age {i + 1} not within modelled range.")
+            print(f"         This age will be excluded from the misfit calculation.")
+        elif not (min(param_y) <= age_data[3][i] <= max(param_y)):
+            print(f"Warning: Grain radius for {age_type} age {i + 1} not within modelled range.")
+            print(f"         This age will be excluded from the misfit calculation.")
+        else:
+            predicted_ages.append(age_interp([age_data[2][i], age_data[3][i]]))
+            # Include only measured ages within the eU/radius ranges
+            measured_ages.append(age_data[0][i])
+            std_dev.append(age_data[1][i])
+    # Calculate misfit
+    misfit = chi_squared(measured_ages, predicted_ages, std_dev)
+    n_ages = len(measured_ages)
+    return misfit[0], n_ages
 
 
 # Define function for creating plot of cooling rates
@@ -195,6 +274,8 @@ def eu_vs_radius(
     plot_alpha=1.0,
     plot_contour_lines=12,
     plot_contour_fills=256,
+    age_data_file="",
+    calc_misfit=False,
     display_plot=True,
     tt_plot=False,
     verbose=False,
@@ -268,6 +349,10 @@ def eu_vs_radius(
         Number of contour lines used for plotting.
     plot_contour_fills : int, default=256
         Number of contour fill colors from the selected colormap.
+    age_data_file : str, default=''
+        Filename for file containing measured thermochronometer ages.
+    calc_misfit : bool, default=False
+        Flag for whether a misfit should be calculated for measured and predicted ages.
     display_plot : bool, default=True
         Flag for whether to display the plot.
     tt_plot : bool, default=False
@@ -294,6 +379,13 @@ def eu_vs_radius(
                 "Warning: IPython.display module not found. Disabling graphical progress bar."
             )
             use_widget = False
+
+    # Read in measured ages from file, if age_data_file is defined
+    if len(age_data_file) > 0:
+        ahe_age_data, zhe_age_data = read_age_data(age_data_file)
+    else:
+        ahe_age_data = []
+        zhe_age_data = []
 
     # Ensure relative paths work by setting working dir to dir containing this script file
     wd_orig = os.getcwd()
@@ -350,11 +442,24 @@ def eu_vs_radius(
     # Set plot style
     plt.style.use(plot_style)
 
-    # Create figure
+    # Define plot size and number of subplots
+    fig_width = 10
     if plot_type < 3:
-        fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+        fig_height = 5
+        # Make plot longer if plotting data
+        if plot_type == 1:
+            if len(ahe_age_data) > 0: fig_height += 1.5
+        else:
+            if len(zhe_age_data) > 0: fig_height += 1.5
+        # Create figure and axes
+        fig, ax = plt.subplots(1, 2, figsize=(fig_width, fig_height))
     else:
-        fig, ax = plt.subplots(2, 2, figsize=(10, 10))
+        fig_height = 10
+        # Make plot longer if plotting data
+        if (len(ahe_age_data) > 0): fig_height += 1.5
+        if (len(zhe_age_data) > 0): fig_height += 1.5
+        # Create figure and axes
+        fig, ax = plt.subplots(2, 2, figsize=(fig_width, fig_height))
 
     # Set plot loop variables
     ap_x = ap_eu
@@ -466,6 +571,18 @@ def eu_vs_radius(
     # Clean up Tt file
     os.remove(tt_file)
 
+    # Calculate age misfits if age data file is used and option is selected
+    if calc_misfit and len(age_data_file) > 0:
+        total_misfit = 0
+        if len(ahe_age_data) > 0:
+            ahe_misfit, ahe_n_ages = calculate_misfit(ahe_age_data, "AHe", ahe_age_list, ap_x, ap_y)
+            print(f"AHe misfit (n = {ahe_n_ages} ages): {ahe_misfit}")
+        if len(zhe_age_data) > 0:
+            zhe_misfit, zhe_n_ages = calculate_misfit(zhe_age_data, "ZHe", zhe_age_list, zr_x, zr_y)
+            print(f"ZHe misfit (n = {zhe_n_ages} ages): {zhe_misfit}")
+        total_misfit += ahe_misfit + zhe_misfit
+        print(f"Total misfit (n = {ahe_n_ages + zhe_n_ages} ages): {total_misfit}")
+
     # Apatite eU versus radius
     if plot_type == 1:
         # Create age contour lines
@@ -475,10 +592,17 @@ def eu_vs_radius(
             ahe_age_list,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Add age contour labels
         ax[0].clabel(ap_contours_age)
+        # Determine bounds for contour colors if plotting age data
+        if len(ahe_age_data) > 0:
+            age_min = min(min(ahe_age_list), min(ahe_age_data[0]))
+            age_max = max(max(ahe_age_list), max(ahe_age_data[0]))
+        else:
+            age_min = min(ahe_age_list)
+            age_max = max(ahe_age_list)
         # Create age contour fill
         ap_contourf_age = ax[0].tricontourf(
             ap_x_list,
@@ -486,8 +610,31 @@ def eu_vs_radius(
             ahe_age_list,
             plot_contour_fills,
             cmap=plot_colormap,
+            vmin=age_min,
+            vmax=age_max,
             alpha=plot_alpha,
         )
+        if len(ahe_age_data) > 0:
+            ahe_label = f"AHe data (n = {ahe_n_ages}"
+            if calc_misfit:
+                ahe_label += f"; misfit: {ahe_misfit:.2f}"
+            ahe_label += ")"
+            age_data_plot = ax[0].scatter(
+                x=ahe_age_data[2],
+                y=ahe_age_data[3],
+                c=ahe_age_data[0],
+                edgecolors="black",
+                cmap=plot_colormap,
+                vmin=age_min,
+                vmax=age_max,
+                label=ahe_label
+            )
+            ax[0].set_xlim([min(ap_x_list), max(ap_x_list)])
+            ax[0].set_ylim([min(ap_y_list), max(ap_y_list)])
+            ax[0].legend()
+
+            # Plot the colorbar if plotting data
+            fig.colorbar(age_data_plot, ax=ax[0], orientation="horizontal", label="Apatite (U-Th)/He age (Ma)")
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_age.collections:
@@ -514,6 +661,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
+        if len(ahe_age_data) > 0:
+            # Plot the colorbar if plotting data
+            fig.colorbar(ap_contourf_tc, ax=ax[1], orientation="horizontal", label="Apatite (U-Th)/He closure temperature (°C)")
+
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
             c.set_edgecolor("face")
@@ -531,6 +682,13 @@ def eu_vs_radius(
         )
         # Add age contour labels
         ax[0].clabel(zr_contours_age)
+        # Determine bounds for contour colors if plotting age data
+        if len(zhe_age_data) > 0:
+            age_min = min(min(zhe_age_list), min(zhe_age_data[0]))
+            age_max = max(max(zhe_age_list), max(zhe_age_data[0]))
+        else:
+            age_min = min(zhe_age_list)
+            age_max = max(zhe_age_list)
         # Create age contour fill
         zr_contourf_age = ax[0].tricontourf(
             zr_x_list,
@@ -538,8 +696,31 @@ def eu_vs_radius(
             zhe_age_list,
             plot_contour_fills,
             cmap=plot_colormap,
+            vmin=age_min,
+            vmax=age_max,
             alpha=plot_alpha,
         )
+        if len(zhe_age_data) > 0:
+            zhe_label = f"ZHe data (n = {zhe_n_ages}"
+            if calc_misfit:
+                zhe_label += f"; misfit: {zhe_misfit:.2f}"
+            zhe_label += ")"
+            age_data_plot = ax[0].scatter(
+                x=zhe_age_data[2],
+                y=zhe_age_data[3],
+                c=zhe_age_data[0],
+                edgecolors="black",
+                cmap=plot_colormap,
+                vmin=age_min,
+                vmax=age_max,
+                label=zhe_label
+            )
+            ax[0].set_xlim([min(zr_x_list), max(zr_x_list)])
+            ax[0].set_ylim([min(zr_y_list), max(zr_y_list)])
+            ax[0].legend()
+
+            # Plot the colorbar if plotting data
+            fig.colorbar(age_data_plot, ax=ax[0], orientation="horizontal", label="Zircon (U-Th)/He age (Ma)")
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_age.collections:
@@ -566,6 +747,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
+        if len(zhe_age_data) > 0:
+            # Plot the colorbar if plotting data
+            fig.colorbar(zr_contourf_tc, ax=ax[1], orientation="horizontal", label="Zircon (U-Th)/He closure temperature (°C)")
+
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc.collections:
             c.set_edgecolor("face")
@@ -583,6 +768,13 @@ def eu_vs_radius(
         )
         # Add age contour labels
         ax[0][0].clabel(ap_contours_age)
+        # Determine bounds for contour colors if plotting age data
+        if len(ahe_age_data) > 0:
+            age_min = min(min(ahe_age_list), min(ahe_age_data[0]))
+            age_max = max(max(ahe_age_list), max(ahe_age_data[0]))
+        else:
+            age_min = min(ahe_age_list)
+            age_max = max(ahe_age_list)
         # Create age contour fill
         ap_contourf_age = ax[0][0].tricontourf(
             ap_x_list,
@@ -590,8 +782,31 @@ def eu_vs_radius(
             ahe_age_list,
             plot_contour_fills,
             cmap=plot_colormap,
+            vmin=age_min,
+            vmax=age_max,
             alpha=plot_alpha,
         )
+        if len(ahe_age_data) > 0:
+            ahe_label = f"AHe data (n = {ahe_n_ages}"
+            if calc_misfit:
+                ahe_label += f"; misfit: {ahe_misfit:.2f}"
+            ahe_label += ")"
+            age_data_plot = ax[0][0].scatter(
+                x=ahe_age_data[2],
+                y=ahe_age_data[3],
+                c=ahe_age_data[0],
+                edgecolors="black",
+                cmap=plot_colormap,
+                vmin=age_min,
+                vmax=age_max,
+                label=ahe_label
+            )
+            ax[0][0].set_xlim([min(ap_x_list), max(ap_x_list)])
+            ax[0][0].set_ylim([min(ap_y_list), max(ap_y_list)])
+            ax[0][0].legend()
+
+            # Plot the colorbar if plotting data
+            fig.colorbar(age_data_plot, ax=ax[0][0], orientation="horizontal", label="Apatite (U-Th)/He age (Ma)")
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_age.collections:
@@ -618,6 +833,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
+        if len(ahe_age_data) > 0:
+            # Plot the colorbar if plotting data
+            fig.colorbar(ap_contourf_tc, ax=ax[0][1], orientation="horizontal", label="Apatite (U-Th)/He closure temperature (°C)")
+
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
             c.set_edgecolor("face")
@@ -633,6 +852,13 @@ def eu_vs_radius(
         )
         # Add age contour labels
         ax[1][0].clabel(zr_contours_age)
+        # Determine bounds for contour colors if plotting age data
+        if len(zhe_age_data) > 0:
+            age_min = min(min(zhe_age_list), min(zhe_age_data[0]))
+            age_max = max(max(zhe_age_list), max(zhe_age_data[0]))
+        else:
+            age_min = min(zhe_age_list)
+            age_max = max(zhe_age_list)
         # Create age contour fill
         zr_contourf_age = ax[1][0].tricontourf(
             zr_x_list,
@@ -640,8 +866,31 @@ def eu_vs_radius(
             zhe_age_list,
             plot_contour_fills,
             cmap=plot_colormap,
+            vmin=age_min,
+            vmax=age_max,
             alpha=plot_alpha,
         )
+        if len(zhe_age_data) > 0:
+            zhe_label = f"ZHe data  (n = {zhe_n_ages}"
+            if calc_misfit:
+                zhe_label += f"; misfit: {zhe_misfit:.2f}"
+            zhe_label += ")"
+            age_data_plot = ax[1][0].scatter(
+                x=zhe_age_data[2],
+                y=zhe_age_data[3],
+                c=zhe_age_data[0],
+                edgecolors="black",
+                cmap=plot_colormap,
+                vmin=age_min,
+                vmax=age_max,
+                label=zhe_label
+            )
+            ax[1][0].set_xlim([min(zr_x_list), max(zr_x_list)])
+            ax[1][0].set_ylim([min(zr_y_list), max(zr_y_list)])
+            ax[1][0].legend()
+
+            # Plot the colorbar if plotting data
+            fig.colorbar(age_data_plot, ax=ax[1][0], orientation="horizontal", label="Zircon (U-Th)/He age (Ma)")
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_age.collections:
@@ -668,11 +917,15 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
+        if len(zhe_age_data) > 0:
+            # Plot the colorbar if plotting data
+            fig.colorbar(zr_contourf_tc, ax=ax[1][1], orientation="horizontal", label="Zircon (U-Th)/He closure temperature (°C)")
+
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc.collections:
             c.set_edgecolor("face")
 
-    # Format plot
+    # Format plot labels
 
     # Apatite eU versus radius
     if plot_type == 1:
