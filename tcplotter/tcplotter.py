@@ -64,6 +64,14 @@ def read_age_data(file):
                     zhe_uncertainty.append(float(data[i][2]))
                     zhe_eu.append(float(data[i][3]))
                     zhe_radius.append(float(data[i][4]))
+            else:
+                if (data[i][0].lower() != "ahe") and (data[i][0].lower() != "zhe"):
+                    print(f"Warning: Unsupported age type ({data[i][0].lower()}) on line {i + 1}.")
+                elif len(data[i][3]) == 0:
+                    print(f"Warning: {data[i][0].lower()} age on line {i + 1} of age file missing eU value.")
+                elif len(data[i][4]) == 0:
+                    print(f"Warning: {data[i][0].lower()} age on line {i + 1} of age file missing radius value.")
+                print(f"         Age will not be plotted.")
         # Create new lists with data file values
         ahe_data = [ahe_age, ahe_uncertainty, ahe_eu, ahe_radius]
         zhe_data = [zhe_age, zhe_uncertainty, zhe_eu, zhe_radius]
