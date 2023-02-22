@@ -4,7 +4,7 @@ from matplotlib.ticker import ScalarFormatter
 import numpy as np
 import os
 from pathlib import Path
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, RegularGridInterpolator
 import shutil
 import subprocess
 
@@ -69,6 +69,43 @@ def read_age_data(file):
         zhe_data = [zhe_age, zhe_uncertainty, zhe_eu, zhe_radius]
 
     return ahe_data, zhe_data
+
+
+def chi_squared(observed, expected, std):
+    """Returns the reduced chi-squared value for input array data."""
+    misfit = 0
+    for i in range(len(observed)):
+        misfit += (observed[i]-expected[i])**2 / std[i]**2
+    # Scale goodness-of-fit by number of ages
+    return misfit / len(observed)
+
+
+def calculate_misfit(age_data, age_type, age_list, param_x, param_y):
+    """Calculates misfit between measured and predicted ages."""
+    predicted_ages = []
+    measured_ages = []
+    std_dev = []
+    for i in range(len(age_data[0])):
+        # Create interpolation function
+        age_grid = np.array(age_list).reshape((len(param_x), len(param_y)))
+        age_interp = RegularGridInterpolator((param_x, param_y), age_grid)
+        # Append interpolated age if within the eU and radius ranges
+        # Check if value is not within eU range
+        if not (min(param_x) <= age_data[2][i] <= max(param_x)):
+            print(f"Warning: eU concentration for {age_type} age {i + 1} not within modelled range.")
+            print(f"         This age will be excluded from the misfit calculation.")
+        elif not (min(param_y) <= age_data[3][i] <= max(param_y)):
+            print(f"Warning: Grain radius for {age_type} age {i + 1} not within modelled range.")
+            print(f"         This age will be excluded from the misfit calculation.")
+        else:
+            predicted_ages.append(age_interp([age_data[2][i], age_data[3][i]]))
+            # Include only measured ages within the eU/radius ranges
+            measured_ages.append(age_data[0][i])
+            std_dev.append(age_data[1][i])
+    # Calculate misfit
+    misfit = chi_squared(measured_ages, predicted_ages, std_dev)
+    n_ages = len(measured_ages)
+    return misfit[0], n_ages
 
 
 # Define function for creating plot of cooling rates
@@ -238,6 +275,7 @@ def eu_vs_radius(
     plot_contour_lines=12,
     plot_contour_fills=256,
     age_data_file="",
+    calc_misfit=False,
     display_plot=True,
     tt_plot=False,
     verbose=False,
@@ -313,6 +351,8 @@ def eu_vs_radius(
         Number of contour fill colors from the selected colormap.
     age_data_file : str, default=''
         Filename for file containing measured thermochronometer ages.
+    calc_misfit : bool, default=False
+        Flag for whether a misfit should be calculated for measured and predicted ages.
     display_plot : bool, default=True
         Flag for whether to display the plot.
     tt_plot : bool, default=False
@@ -531,6 +571,18 @@ def eu_vs_radius(
     # Clean up Tt file
     os.remove(tt_file)
 
+    # Calculate age misfits if age data file is used and option is selected
+    if calc_misfit and len(age_data_file) > 0:
+        total_misfit = 0
+        if len(ahe_age_data) > 0:
+            ahe_misfit, ahe_n_ages = calculate_misfit(ahe_age_data, "AHe", ahe_age_list, ap_x, ap_y)
+            print(f"AHe misfit (n = {ahe_n_ages} ages): {ahe_misfit}")
+        if len(zhe_age_data) > 0:
+            zhe_misfit, zhe_n_ages = calculate_misfit(zhe_age_data, "ZHe", zhe_age_list, zr_x, zr_y)
+            print(f"ZHe misfit (n = {zhe_n_ages} ages): {zhe_misfit}")
+        total_misfit += ahe_misfit + zhe_misfit
+        print(f"Total misfit (n = {ahe_n_ages + zhe_n_ages} ages): {total_misfit}")
+
     # Apatite eU versus radius
     if plot_type == 1:
         # Create age contour lines
@@ -563,6 +615,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
         if len(ahe_age_data) > 0:
+            ahe_label = f"AHe data (n = {ahe_n_ages}"
+            if calc_misfit:
+                ahe_label += f"; misfit: {ahe_misfit:.2f}"
+            ahe_label += ")"
             age_data_plot = ax[0].scatter(
                 x=ahe_age_data[2],
                 y=ahe_age_data[3],
@@ -571,7 +627,7 @@ def eu_vs_radius(
                 cmap=plot_colormap,
                 vmin=age_min,
                 vmax=age_max,
-                label="AHe data"
+                label=ahe_label
             )
             ax[0].set_xlim([min(ap_x_list), max(ap_x_list)])
             ax[0].set_ylim([min(ap_y_list), max(ap_y_list)])
@@ -645,6 +701,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
         if len(zhe_age_data) > 0:
+            zhe_label = f"ZHe data (n = {zhe_n_ages}"
+            if calc_misfit:
+                zhe_label += f"; misfit: {zhe_misfit:.2f}"
+            zhe_label += ")"
             age_data_plot = ax[0].scatter(
                 x=zhe_age_data[2],
                 y=zhe_age_data[3],
@@ -653,7 +713,7 @@ def eu_vs_radius(
                 cmap=plot_colormap,
                 vmin=age_min,
                 vmax=age_max,
-                label="ZHe data"
+                label=zhe_label
             )
             ax[0].set_xlim([min(zr_x_list), max(zr_x_list)])
             ax[0].set_ylim([min(zr_y_list), max(zr_y_list)])
@@ -727,6 +787,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
         if len(ahe_age_data) > 0:
+            ahe_label = f"AHe data (n = {ahe_n_ages}"
+            if calc_misfit:
+                ahe_label += f"; misfit: {ahe_misfit:.2f}"
+            ahe_label += ")"
             age_data_plot = ax[0][0].scatter(
                 x=ahe_age_data[2],
                 y=ahe_age_data[3],
@@ -735,7 +799,7 @@ def eu_vs_radius(
                 cmap=plot_colormap,
                 vmin=age_min,
                 vmax=age_max,
-                label="AHe data"
+                label=ahe_label
             )
             ax[0][0].set_xlim([min(ap_x_list), max(ap_x_list)])
             ax[0][0].set_ylim([min(ap_y_list), max(ap_y_list)])
@@ -807,6 +871,10 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
         if len(zhe_age_data) > 0:
+            zhe_label = f"ZHe data  (n = {zhe_n_ages}"
+            if calc_misfit:
+                zhe_label += f"; misfit: {zhe_misfit:.2f}"
+            zhe_label += ")"
             age_data_plot = ax[1][0].scatter(
                 x=zhe_age_data[2],
                 y=zhe_age_data[3],
@@ -815,7 +883,7 @@ def eu_vs_radius(
                 cmap=plot_colormap,
                 vmin=age_min,
                 vmax=age_max,
-                label="ZHe data"
+                label=zhe_label
             )
             ax[1][0].set_xlim([min(zr_x_list), max(zr_x_list)])
             ax[1][0].set_ylim([min(zr_y_list), max(zr_y_list)])
