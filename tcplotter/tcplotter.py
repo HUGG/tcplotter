@@ -66,11 +66,17 @@ def read_age_data(file):
                     zhe_radius.append(float(data[i][4]))
             else:
                 if (data[i][0].lower() != "ahe") and (data[i][0].lower() != "zhe"):
-                    print(f"Warning: Unsupported age type ({data[i][0].lower()}) on line {i + 1}.")
+                    print(
+                        f"Warning: Unsupported age type ({data[i][0].lower()}) on line {i + 1}."
+                    )
                 elif len(data[i][3]) == 0:
-                    print(f"Warning: {data[i][0].lower()} age on line {i + 1} of age file missing eU value.")
+                    print(
+                        f"Warning: {data[i][0].lower()} age on line {i + 1} of age file missing eU value."
+                    )
                 elif len(data[i][4]) == 0:
-                    print(f"Warning: {data[i][0].lower()} age on line {i + 1} of age file missing radius value.")
+                    print(
+                        f"Warning: {data[i][0].lower()} age on line {i + 1} of age file missing radius value."
+                    )
                 print(f"         Age will not be plotted.")
         # Create new lists with data file values
         ahe_data = [ahe_age, ahe_uncertainty, ahe_eu, ahe_radius]
@@ -83,7 +89,7 @@ def chi_squared(observed, expected, std):
     """Returns the reduced chi-squared value for input array data."""
     misfit = 0
     for i in range(len(observed)):
-        misfit += (observed[i]-expected[i])**2 / std[i]**2
+        misfit += (observed[i] - expected[i]) ** 2 / std[i] ** 2
     # Scale goodness-of-fit by number of ages
     return misfit / len(observed)
 
@@ -100,10 +106,14 @@ def calculate_misfit(age_data, age_type, age_list, param_x, param_y):
         # Append interpolated age if within the eU and radius ranges
         # Check if value is not within eU range
         if not (min(param_x) <= age_data[2][i] <= max(param_x)):
-            print(f"Warning: eU concentration for {age_type} age {i + 1} not within modelled range.")
+            print(
+                f"Warning: eU concentration for {age_type} age {i + 1} not within modelled range."
+            )
             print(f"         This age will be excluded from the misfit calculation.")
         elif not (min(param_y) <= age_data[3][i] <= max(param_y)):
-            print(f"Warning: Grain radius for {age_type} age {i + 1} not within modelled range.")
+            print(
+                f"Warning: Grain radius for {age_type} age {i + 1} not within modelled range."
+            )
             print(f"         This age will be excluded from the misfit calculation.")
         else:
             predicted_ages.append(age_interp([age_data[2][i], age_data[3][i]]))
@@ -377,7 +387,9 @@ def eu_vs_radius(
         try:
             import ipywidgets as widgets
         except ModuleNotFoundError:
-            print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
+            print(
+                "Warning: ipywidgets module not found. Disabling graphical progress bar."
+            )
             use_widget = False
     if use_widget:
         try:
@@ -456,16 +468,20 @@ def eu_vs_radius(
         fig_height = 5
         # Make plot longer if plotting data
         if plot_type == 1:
-            if len(ahe_age_data) > 0: fig_height += 1.5
+            if len(ahe_age_data) > 0:
+                fig_height += 1.5
         else:
-            if len(zhe_age_data) > 0: fig_height += 1.5
+            if len(zhe_age_data) > 0:
+                fig_height += 1.5
         # Create figure and axes
         fig, ax = plt.subplots(1, 2, figsize=(fig_width, fig_height))
     else:
         fig_height = 10
         # Make plot longer if plotting data
-        if (len(ahe_age_data) > 0): fig_height += 1.5
-        if (len(zhe_age_data) > 0): fig_height += 1.5
+        if len(ahe_age_data) > 0:
+            fig_height += 1.5
+        if len(zhe_age_data) > 0:
+            fig_height += 1.5
         # Create figure and axes
         fig, ax = plt.subplots(2, 2, figsize=(fig_width, fig_height))
 
@@ -583,10 +599,14 @@ def eu_vs_radius(
     if calc_misfit and len(age_data_file) > 0:
         total_misfit = 0
         if len(ahe_age_data) > 0:
-            ahe_misfit, ahe_n_ages = calculate_misfit(ahe_age_data, "AHe", ahe_age_list, ap_x, ap_y)
+            ahe_misfit, ahe_n_ages = calculate_misfit(
+                ahe_age_data, "AHe", ahe_age_list, ap_x, ap_y
+            )
             print(f"AHe misfit (n = {ahe_n_ages} ages): {ahe_misfit}")
         if len(zhe_age_data) > 0:
-            zhe_misfit, zhe_n_ages = calculate_misfit(zhe_age_data, "ZHe", zhe_age_list, zr_x, zr_y)
+            zhe_misfit, zhe_n_ages = calculate_misfit(
+                zhe_age_data, "ZHe", zhe_age_list, zr_x, zr_y
+            )
             print(f"ZHe misfit (n = {zhe_n_ages} ages): {zhe_misfit}")
         total_misfit += ahe_misfit + zhe_misfit
         print(f"Total misfit (n = {ahe_n_ages + zhe_n_ages} ages): {total_misfit}")
@@ -635,14 +655,19 @@ def eu_vs_radius(
                 cmap=plot_colormap,
                 vmin=age_min,
                 vmax=age_max,
-                label=ahe_label
+                label=ahe_label,
             )
             ax[0].set_xlim([min(ap_x_list), max(ap_x_list)])
             ax[0].set_ylim([min(ap_y_list), max(ap_y_list)])
             ax[0].legend()
 
             # Plot the colorbar if plotting data
-            fig.colorbar(age_data_plot, ax=ax[0], orientation="horizontal", label="Apatite (U-Th)/He age (Ma)")
+            fig.colorbar(
+                age_data_plot,
+                ax=ax[0],
+                orientation="horizontal",
+                label="Apatite (U-Th)/He age (Ma)",
+            )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_age.collections:
@@ -671,7 +696,12 @@ def eu_vs_radius(
 
         if len(ahe_age_data) > 0:
             # Plot the colorbar if plotting data
-            fig.colorbar(ap_contourf_tc, ax=ax[1], orientation="horizontal", label="Apatite (U-Th)/He closure temperature (°C)")
+            fig.colorbar(
+                ap_contourf_tc,
+                ax=ax[1],
+                orientation="horizontal",
+                label="Apatite (U-Th)/He closure temperature (°C)",
+            )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
@@ -686,7 +716,7 @@ def eu_vs_radius(
             zhe_age_list,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Add age contour labels
         ax[0].clabel(zr_contours_age)
@@ -721,14 +751,19 @@ def eu_vs_radius(
                 cmap=plot_colormap,
                 vmin=age_min,
                 vmax=age_max,
-                label=zhe_label
+                label=zhe_label,
             )
             ax[0].set_xlim([min(zr_x_list), max(zr_x_list)])
             ax[0].set_ylim([min(zr_y_list), max(zr_y_list)])
             ax[0].legend()
 
             # Plot the colorbar if plotting data
-            fig.colorbar(age_data_plot, ax=ax[0], orientation="horizontal", label="Zircon (U-Th)/He age (Ma)")
+            fig.colorbar(
+                age_data_plot,
+                ax=ax[0],
+                orientation="horizontal",
+                label="Zircon (U-Th)/He age (Ma)",
+            )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_age.collections:
@@ -741,7 +776,7 @@ def eu_vs_radius(
             zhe_tc_list,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Add closure temperature contour labels
         ax[1].clabel(zr_contours_tc)
@@ -757,7 +792,12 @@ def eu_vs_radius(
 
         if len(zhe_age_data) > 0:
             # Plot the colorbar if plotting data
-            fig.colorbar(zr_contourf_tc, ax=ax[1], orientation="horizontal", label="Zircon (U-Th)/He closure temperature (°C)")
+            fig.colorbar(
+                zr_contourf_tc,
+                ax=ax[1],
+                orientation="horizontal",
+                label="Zircon (U-Th)/He closure temperature (°C)",
+            )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc.collections:
@@ -772,7 +812,7 @@ def eu_vs_radius(
             ahe_age_list,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Add age contour labels
         ax[0][0].clabel(ap_contours_age)
@@ -807,14 +847,19 @@ def eu_vs_radius(
                 cmap=plot_colormap,
                 vmin=age_min,
                 vmax=age_max,
-                label=ahe_label
+                label=ahe_label,
             )
             ax[0][0].set_xlim([min(ap_x_list), max(ap_x_list)])
             ax[0][0].set_ylim([min(ap_y_list), max(ap_y_list)])
             ax[0][0].legend()
 
             # Plot the colorbar if plotting data
-            fig.colorbar(age_data_plot, ax=ax[0][0], orientation="horizontal", label="Apatite (U-Th)/He age (Ma)")
+            fig.colorbar(
+                age_data_plot,
+                ax=ax[0][0],
+                orientation="horizontal",
+                label="Apatite (U-Th)/He age (Ma)",
+            )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_age.collections:
@@ -827,7 +872,7 @@ def eu_vs_radius(
             ahe_tc_list,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Add closure temperature contour labels
         ax[0][1].clabel(ap_contours_tc)
@@ -843,7 +888,12 @@ def eu_vs_radius(
 
         if len(ahe_age_data) > 0:
             # Plot the colorbar if plotting data
-            fig.colorbar(ap_contourf_tc, ax=ax[0][1], orientation="horizontal", label="Apatite (U-Th)/He closure temperature (°C)")
+            fig.colorbar(
+                ap_contourf_tc,
+                ax=ax[0][1],
+                orientation="horizontal",
+                label="Apatite (U-Th)/He closure temperature (°C)",
+            )
 
         # This is the fix for the white lines between contour levels
         for c in ap_contourf_tc.collections:
@@ -856,7 +906,7 @@ def eu_vs_radius(
             zhe_age_list,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Add age contour labels
         ax[1][0].clabel(zr_contours_age)
@@ -891,14 +941,19 @@ def eu_vs_radius(
                 cmap=plot_colormap,
                 vmin=age_min,
                 vmax=age_max,
-                label=zhe_label
+                label=zhe_label,
             )
             ax[1][0].set_xlim([min(zr_x_list), max(zr_x_list)])
             ax[1][0].set_ylim([min(zr_y_list), max(zr_y_list)])
             ax[1][0].legend()
 
             # Plot the colorbar if plotting data
-            fig.colorbar(age_data_plot, ax=ax[1][0], orientation="horizontal", label="Zircon (U-Th)/He age (Ma)")
+            fig.colorbar(
+                age_data_plot,
+                ax=ax[1][0],
+                orientation="horizontal",
+                label="Zircon (U-Th)/He age (Ma)",
+            )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_age.collections:
@@ -911,7 +966,7 @@ def eu_vs_radius(
             zhe_tc_list,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Add closure temperature contour labels
         ax[1][1].clabel(zr_contours_tc)
@@ -927,7 +982,12 @@ def eu_vs_radius(
 
         if len(zhe_age_data) > 0:
             # Plot the colorbar if plotting data
-            fig.colorbar(zr_contourf_tc, ax=ax[1][1], orientation="horizontal", label="Zircon (U-Th)/He closure temperature (°C)")
+            fig.colorbar(
+                zr_contourf_tc,
+                ax=ax[1][1],
+                orientation="horizontal",
+                label="Zircon (U-Th)/He closure temperature (°C)",
+            )
 
         # This is the fix for the white lines between contour levels
         for c in zr_contourf_tc.collections:
@@ -1166,7 +1226,9 @@ def rate_vs_radius_eu(
         try:
             import ipywidgets as widgets
         except ModuleNotFoundError:
-            print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
+            print(
+                "Warning: ipywidgets module not found. Disabling graphical progress bar."
+            )
             use_widget = False
     if use_widget:
         try:
@@ -1435,7 +1497,7 @@ def rate_vs_radius_eu(
             ahe_tc_list1,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Use log x-axis scaling
         ax[0].set_xscale("log")
@@ -1463,7 +1525,7 @@ def rate_vs_radius_eu(
             ahe_tc_list2,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Use log x-axis scaling
         ax[1].set_xscale("log")
@@ -1493,7 +1555,7 @@ def rate_vs_radius_eu(
             zhe_tc_list1,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Use log x-axis scaling
         ax[0].set_xscale("log")
@@ -1521,7 +1583,7 @@ def rate_vs_radius_eu(
             zhe_tc_list2,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Use log x-axis scaling
         ax[1].set_xscale("log")
@@ -1551,7 +1613,7 @@ def rate_vs_radius_eu(
             ahe_tc_list1,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Use log x-axis scaling
         ax[0][0].set_xscale("log")
@@ -1579,7 +1641,7 @@ def rate_vs_radius_eu(
             ahe_tc_list2,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Use log x-axis scaling
         ax[0][1].set_xscale("log")
@@ -1607,7 +1669,7 @@ def rate_vs_radius_eu(
             zhe_tc_list1,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Use log x-axis scaling
         ax[1][0].set_xscale("log")
@@ -1635,7 +1697,7 @@ def rate_vs_radius_eu(
             zhe_tc_list2,
             plot_contour_lines,
             linewidths=0.5,
-            colors="k",
+            colors="black",
         )
         # Use log x-axis scaling
         ax[1][1].set_xscale("log")
@@ -1860,7 +1922,9 @@ def rate_vs_age_tc(
         try:
             import ipywidgets as widgets
         except ModuleNotFoundError:
-            print("Warning: ipywidgets module not found. Disabling graphical progress bar.")
+            print(
+                "Warning: ipywidgets module not found. Disabling graphical progress bar."
+            )
             use_widget = False
     if use_widget:
         try:
