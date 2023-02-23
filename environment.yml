@@ -5,4 +5,4 @@ dependencies:
   - matplotlib==3.6.3
   - numpy==1.24.2
   - scipy==1.10.0
-  - IPython==8.10.0
+  - IPython==8.9.0
