@@ -30,8 +30,8 @@ def get_tc_exec(command):
 
 
 # Function for reading age data file
-def read_age_data(file):
-    """Reads in age data from a csv file"""
+def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
+    """Reads in age data from a csv file and stores plotable data"""
     # Make empty lists for column values
     ahe_age = []
     ahe_uncertainty = []
@@ -54,16 +54,51 @@ def read_age_data(file):
             if (len(data[i][3]) > 0) and (len(data[i][4]) > 0):
                 # Append AHe data if the age type is AHe
                 if data[i][0].lower() == "ahe":
-                    ahe_age.append(float(data[i][1]))
-                    ahe_uncertainty.append(float(data[i][2]))
-                    ahe_eu.append(float(data[i][3]))
-                    ahe_radius.append(float(data[i][4]))
+                    # Check if value is not within eU range
+                    if not (min(ap_x) <= float(data[i][3]) <= max(ap_x)):
+                        print(
+                            f"Warning: eU concentration for {data[i][0].lower()} age on line {i + 1} not within modelled range."
+                        )
+                        print(
+                            f"         This age will be excluded from plotting and the misfit calculation."
+                        )
+                    # Check if value is not within radius range
+                    elif not (min(ap_y) <= float(data[i][4]) <= max(ap_y)):
+                        print(
+                            f"Warning: Grain radius for {data[i][0].lower()} age on line {i + 1} not within modelled range."
+                        )
+                        print(
+                            f"         This age will be excluded from plotting and the misfit calculation."
+                        )
+                    else:
+                        ahe_age.append(float(data[i][1]))
+                        ahe_uncertainty.append(float(data[i][2]))
+                        ahe_eu.append(float(data[i][3]))
+                        ahe_radius.append(float(data[i][4]))
+
                 # Append ZHe data if the age type is ZHe
                 elif data[i][0].lower() == "zhe":
-                    zhe_age.append(float(data[i][1]))
-                    zhe_uncertainty.append(float(data[i][2]))
-                    zhe_eu.append(float(data[i][3]))
-                    zhe_radius.append(float(data[i][4]))
+                    # Check if value is not within eU range
+                    if not (min(zr_x) <= float(data[i][3]) <= max(zr_x)):
+                        print(
+                            f"Warning: eU concentration for {data[i][0].lower()} age {i + 1} not within modelled range."
+                        )
+                        print(
+                            f"         This age will be excluded from plotting and the misfit calculation."
+                        )
+                    # Check if value is not within radius range
+                    elif not (min(zr_y) <= float(data[i][4]) <= max(zr_y)):
+                        print(
+                            f"Warning: Grain radius for {data[i][0].lower()} age {i + 1} not within modelled range."
+                        )
+                        print(
+                            f"         This age will be excluded from plotting and the misfit calculation."
+                        )
+                    else:
+                        zhe_age.append(float(data[i][1]))
+                        zhe_uncertainty.append(float(data[i][2]))
+                        zhe_eu.append(float(data[i][3]))
+                        zhe_radius.append(float(data[i][4]))
             else:
                 if (data[i][0].lower() != "ahe") and (data[i][0].lower() != "zhe"):
                     print(
@@ -71,18 +106,20 @@ def read_age_data(file):
                     )
                 elif len(data[i][3]) == 0:
                     print(
-                        f"Warning: {data[i][0].lower()} age on line {i + 1} of age file missing eU value."
+                        f"Warning: {data[i][0].lower()} age on line {i + 1} missing eU value."
                     )
                 elif len(data[i][4]) == 0:
                     print(
-                        f"Warning: {data[i][0].lower()} age on line {i + 1} of age file missing radius value."
+                        f"Warning: {data[i][0].lower()} age on line {i + 1} missing radius value."
                     )
                 print(f"         Age will not be plotted.")
         # Create new lists with data file values
+        n_ahe = len(ahe_age)
+        n_zhe = len(zhe_age)
         ahe_data = [ahe_age, ahe_uncertainty, ahe_eu, ahe_radius]
         zhe_data = [zhe_age, zhe_uncertainty, zhe_eu, zhe_radius]
 
-    return ahe_data, zhe_data
+    return n_ahe, ahe_data, n_zhe, zhe_data
 
 
 def chi_squared(observed, expected, std):
@@ -94,7 +131,7 @@ def chi_squared(observed, expected, std):
     return misfit / len(observed)
 
 
-def calculate_misfit(age_data, age_type, age_list, param_x, param_y):
+def calculate_misfit(age_data, age_list, param_x, param_y):
     """Calculates misfit between measured and predicted ages."""
     predicted_ages = []
     measured_ages = []
@@ -103,27 +140,13 @@ def calculate_misfit(age_data, age_type, age_list, param_x, param_y):
         # Create interpolation function
         age_grid = np.array(age_list).reshape((len(param_x), len(param_y)))
         age_interp = RegularGridInterpolator((param_x, param_y), age_grid)
-        # Append interpolated age if within the eU and radius ranges
-        # Check if value is not within eU range
-        if not (min(param_x) <= age_data[2][i] <= max(param_x)):
-            print(
-                f"Warning: eU concentration for {age_type} age {i + 1} not within modelled range."
-            )
-            print(f"         This age will be excluded from the misfit calculation.")
-        elif not (min(param_y) <= age_data[3][i] <= max(param_y)):
-            print(
-                f"Warning: Grain radius for {age_type} age {i + 1} not within modelled range."
-            )
-            print(f"         This age will be excluded from the misfit calculation.")
-        else:
-            predicted_ages.append(age_interp([age_data[2][i], age_data[3][i]]))
-            # Include only measured ages within the eU/radius ranges
-            measured_ages.append(age_data[0][i])
-            std_dev.append(age_data[1][i])
+        predicted_ages.append(age_interp([age_data[2][i], age_data[3][i]]))
+        measured_ages.append(age_data[0][i])
+        std_dev.append(age_data[1][i])
     # Calculate misfit
     misfit = chi_squared(measured_ages, predicted_ages, std_dev)
     n_ages = len(measured_ages)
-    return misfit[0], n_ages
+    return misfit[0]
 
 
 # Define function for creating plot of cooling rates
@@ -400,13 +423,6 @@ def eu_vs_radius(
             )
             use_widget = False
 
-    # Read in measured ages from file, if age_data_file is defined
-    if len(age_data_file) > 0:
-        ahe_age_data, zhe_age_data = read_age_data(age_data_file)
-    else:
-        ahe_age_data = []
-        zhe_age_data = []
-
     # Ensure relative paths work by setting working dir to dir containing this script file
     wd_orig = os.getcwd()
     script_path = os.path.abspath(__file__)
@@ -462,34 +478,45 @@ def eu_vs_radius(
     # Set plot style
     plt.style.use(plot_style)
 
+    # Set plot loop variables
+    ap_x = ap_eu
+    ap_y = ap_rad
+    zr_x = zr_eu
+    zr_y = zr_rad
+
+    # Read in measured ages from file, if age_data_file is defined
+    if len(age_data_file) > 0:
+        print(f"Reading age data file {age_data_file}...")
+        fp = os.path.join(wd_orig, age_data_file)
+        num_ahe_age_data, ahe_age_data, num_zhe_age_data, zhe_age_data = read_age_data(
+            fp, ap_x, ap_y, zr_x, zr_y
+        )
+        print(
+            f"Found {num_ahe_age_data} usable AHe age(s) and {num_zhe_age_data} usable ZHe age(s)."
+        )
+
     # Define plot size and number of subplots
     fig_width = 10
     if plot_type < 3:
         fig_height = 5
         # Make plot longer if plotting data
         if plot_type == 1:
-            if len(ahe_age_data) > 0:
+            if num_ahe_age_data > 0:
                 fig_height += 1.5
         else:
-            if len(zhe_age_data) > 0:
+            if num_zhe_age_data > 0:
                 fig_height += 1.5
         # Create figure and axes
         fig, ax = plt.subplots(1, 2, figsize=(fig_width, fig_height))
     else:
         fig_height = 10
         # Make plot longer if plotting data
-        if len(ahe_age_data) > 0:
+        if num_ahe_age_data > 0:
             fig_height += 1.5
-        if len(zhe_age_data) > 0:
+        if num_zhe_age_data > 0:
             fig_height += 1.5
         # Create figure and axes
         fig, ax = plt.subplots(2, 2, figsize=(fig_width, fig_height))
-
-    # Set plot loop variables
-    ap_x = ap_eu
-    ap_y = ap_rad
-    zr_x = zr_eu
-    zr_y = zr_rad
 
     # Create lists for storing closure temperatures, ages
     ahe_tc_list = []
@@ -596,20 +623,25 @@ def eu_vs_radius(
     os.remove(tt_file)
 
     # Calculate age misfits if age data file is used and option is selected
-    if calc_misfit and len(age_data_file) > 0:
-        total_misfit = 0
-        if len(ahe_age_data) > 0:
-            ahe_misfit, ahe_n_ages = calculate_misfit(
-                ahe_age_data, "AHe", ahe_age_list, ap_x, ap_y
+    if calc_misfit:
+        if (num_ahe_age_data > 0) or (num_zhe_age_data > 0):
+            total_misfit = 0
+            if num_ahe_age_data > 0:
+                ahe_misfit = calculate_misfit(ahe_age_data, ahe_age_list, ap_x, ap_y)
+                print(f"AHe misfit (n = {num_ahe_age_data} ages): {ahe_misfit}")
+                total_misfit += ahe_misfit
+            if num_zhe_age_data > 0:
+                zhe_misfit = calculate_misfit(zhe_age_data, zhe_age_list, zr_x, zr_y)
+                print(f"ZHe misfit (n = {num_zhe_age_data} ages): {zhe_misfit}")
+                total_misfit += zhe_misfit
+            print(
+                f"Total misfit (n = {num_ahe_age_data + num_zhe_age_data} ages): {total_misfit}"
             )
-            print(f"AHe misfit (n = {ahe_n_ages} ages): {ahe_misfit}")
-        if len(zhe_age_data) > 0:
-            zhe_misfit, zhe_n_ages = calculate_misfit(
-                zhe_age_data, "ZHe", zhe_age_list, zr_x, zr_y
+        else:
+            print(
+                f"Warning: Misfit calculation requested, but no AHe or ZHe ages found in data file."
             )
-            print(f"ZHe misfit (n = {zhe_n_ages} ages): {zhe_misfit}")
-        total_misfit += ahe_misfit + zhe_misfit
-        print(f"Total misfit (n = {ahe_n_ages + zhe_n_ages} ages): {total_misfit}")
+            print(f"         Misfit will not be calculated.")
 
     # Apatite eU versus radius
     if plot_type == 1:
@@ -625,7 +657,7 @@ def eu_vs_radius(
         # Add age contour labels
         ax[0].clabel(ap_contours_age)
         # Determine bounds for contour colors if plotting age data
-        if len(ahe_age_data) > 0:
+        if num_ahe_age_data > 0:
             age_min = min(min(ahe_age_list), min(ahe_age_data[0]))
             age_max = max(max(ahe_age_list), max(ahe_age_data[0]))
         else:
@@ -642,8 +674,8 @@ def eu_vs_radius(
             vmax=age_max,
             alpha=plot_alpha,
         )
-        if len(ahe_age_data) > 0:
-            ahe_label = f"AHe data (n = {ahe_n_ages}"
+        if num_ahe_age_data > 0:
+            ahe_label = f"AHe data (n = {num_ahe_age_data}"
             if calc_misfit:
                 ahe_label += f"; misfit: {ahe_misfit:.2f}"
             ahe_label += ")"
@@ -694,7 +726,7 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
-        if len(ahe_age_data) > 0:
+        if num_ahe_age_data > 0:
             # Plot the colorbar if plotting data
             fig.colorbar(
                 ap_contourf_tc,
@@ -721,7 +753,7 @@ def eu_vs_radius(
         # Add age contour labels
         ax[0].clabel(zr_contours_age)
         # Determine bounds for contour colors if plotting age data
-        if len(zhe_age_data) > 0:
+        if num_zhe_age_data > 0:
             age_min = min(min(zhe_age_list), min(zhe_age_data[0]))
             age_max = max(max(zhe_age_list), max(zhe_age_data[0]))
         else:
@@ -738,8 +770,8 @@ def eu_vs_radius(
             vmax=age_max,
             alpha=plot_alpha,
         )
-        if len(zhe_age_data) > 0:
-            zhe_label = f"ZHe data (n = {zhe_n_ages}"
+        if num_zhe_age_data > 0:
+            zhe_label = f"ZHe data (n = {num_zhe_age_data}"
             if calc_misfit:
                 zhe_label += f"; misfit: {zhe_misfit:.2f}"
             zhe_label += ")"
@@ -790,7 +822,7 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
-        if len(zhe_age_data) > 0:
+        if num_zhe_age_data > 0:
             # Plot the colorbar if plotting data
             fig.colorbar(
                 zr_contourf_tc,
@@ -817,7 +849,7 @@ def eu_vs_radius(
         # Add age contour labels
         ax[0][0].clabel(ap_contours_age)
         # Determine bounds for contour colors if plotting age data
-        if len(ahe_age_data) > 0:
+        if num_ahe_age_data > 0:
             age_min = min(min(ahe_age_list), min(ahe_age_data[0]))
             age_max = max(max(ahe_age_list), max(ahe_age_data[0]))
         else:
@@ -834,8 +866,8 @@ def eu_vs_radius(
             vmax=age_max,
             alpha=plot_alpha,
         )
-        if len(ahe_age_data) > 0:
-            ahe_label = f"AHe data (n = {ahe_n_ages}"
+        if num_ahe_age_data > 0:
+            ahe_label = f"AHe data (n = {num_ahe_age_data}"
             if calc_misfit:
                 ahe_label += f"; misfit: {ahe_misfit:.2f}"
             ahe_label += ")"
@@ -886,7 +918,7 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
-        if len(ahe_age_data) > 0:
+        if num_ahe_age_data > 0:
             # Plot the colorbar if plotting data
             fig.colorbar(
                 ap_contourf_tc,
@@ -911,7 +943,7 @@ def eu_vs_radius(
         # Add age contour labels
         ax[1][0].clabel(zr_contours_age)
         # Determine bounds for contour colors if plotting age data
-        if len(zhe_age_data) > 0:
+        if num_zhe_age_data > 0:
             age_min = min(min(zhe_age_list), min(zhe_age_data[0]))
             age_max = max(max(zhe_age_list), max(zhe_age_data[0]))
         else:
@@ -928,8 +960,8 @@ def eu_vs_radius(
             vmax=age_max,
             alpha=plot_alpha,
         )
-        if len(zhe_age_data) > 0:
-            zhe_label = f"ZHe data  (n = {zhe_n_ages}"
+        if num_zhe_age_data > 0:
+            zhe_label = f"ZHe data  (n = {num_zhe_age_data}"
             if calc_misfit:
                 zhe_label += f"; misfit: {zhe_misfit:.2f}"
             zhe_label += ")"
@@ -980,7 +1012,7 @@ def eu_vs_radius(
             alpha=plot_alpha,
         )
 
-        if len(zhe_age_data) > 0:
+        if num_zhe_age_data > 0:
             # Plot the colorbar if plotting data
             fig.colorbar(
                 zr_contourf_tc,
