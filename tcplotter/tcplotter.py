@@ -485,6 +485,8 @@ def eu_vs_radius(
     zr_y = zr_rad
 
     # Read in measured ages from file, if age_data_file is defined
+    num_ahe_age_data = 0
+    num_zhe_age_data = 0
     if len(age_data_file) > 0:
         print(f"Reading age data file {age_data_file}...")
         fp = os.path.join(wd_orig, age_data_file)
