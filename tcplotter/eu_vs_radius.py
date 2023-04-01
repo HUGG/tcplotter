@@ -27,7 +27,8 @@ def main():
         "--cooling-hist-type",
         dest="cooling_hist_type",
         help="Cooling history type. 1 = constant cooling rate (specify rate as parameter rate). 2 = "
-        "list of time-temperature points (fill in lists as parameters time_hist, temp_hist).",
+        "list of time-temperature points (fill in lists as parameters time_hist, temp_hist). 3 = "
+        "time-temperature history file (give filename with flag --input-tt-file.",
         default=1,
         type=int,
     )
@@ -207,6 +208,13 @@ def main():
         type=str,
     )
     parser.add_argument(
+        "--input-tt-file",
+        dest="input_tt_file",
+        help="Filename for file time-temperature history",
+        default="",
+        type=str,
+    )
+    parser.add_argument(
         "--calc-misfit",
         dest="calc_misfit",
         help="Flag for whether a misfit should be calculated for measured and predicted ages",
@@ -268,6 +276,7 @@ def main():
         plot_contour_lines=args.plot_contour_lines,
         plot_contour_fills=args.plot_contour_fills,
         age_data_file=args.age_data_file,
+        input_tt_file=args.input_tt_file,
         calc_misfit=args.calc_misfit,
         display_plot=display_plot,
         tt_plot=args.tt_plot,

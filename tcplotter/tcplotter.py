@@ -149,6 +149,29 @@ def calculate_misfit(age_data, age_list, param_x, param_y):
     return misfit[0]
 
 
+# Define function for reading time-temperature histories from a file
+def read_tt_history(file, tt_type=1):
+    """Reads in a time-temperature history from a specified file."""
+    # Create lists for storing times and temperatures
+    times = []
+    temperatures = []
+
+    # Read in data file and create nested lists of values
+    with open(file, "r") as file:
+        data = file.read().splitlines()
+        # Process lines in file
+        for i in range(1, len(data)):
+            # Split lines by commas
+            data[i] = data[i].split(",")
+            # Strip whitespace
+            data[i] = [line.strip() for line in data[i]]
+            # Append time and temperature
+            times.append(float(data[i][0]))
+            temperatures.append(float(data[i][1]))
+
+    # Return times and temperatures
+    return times, temperatures
+
 # Define function for creating plot of cooling rates
 def time_vs_temp(
     cooling_rate_min=0.1,
@@ -316,6 +339,7 @@ def eu_vs_radius(
     plot_contour_lines=12,
     plot_contour_fills=256,
     age_data_file="",
+    input_tt_file="",
     calc_misfit=False,
     display_plot=True,
     tt_plot=False,
@@ -339,6 +363,7 @@ def eu_vs_radius(
         1 = constant cooling rate (specify rate as parameter rate)
         2 = list of time-temperature points (fill in lists as parameters
         time_hist, temp_hist)
+        3 = time-temperature history file (csv file, times and temperatures in first 2 columns)
     temp_max : float, default=350.0
         Max temperature for cooling history (in degrees C). Option only for cooling history type 1.
     cooling_rate : float, default=10.0
@@ -392,6 +417,8 @@ def eu_vs_radius(
         Number of contour fill colors from the selected colormap.
     age_data_file : str, default=''
         Filename for file containing measured thermochronometer ages.
+    input_tt_file : str, default=''
+        Filename for file containing time-temperature history.
     calc_misfit : bool, default=False
         Flag for whether a misfit should be calculated for measured and predicted ages.
     display_plot : bool, default=True
@@ -436,13 +463,13 @@ def eu_vs_radius(
         time_hist = [0.0, start_time]
         temp_hist = [0.0, temp_max]
 
-    # Option 2: Define time-temperature history using list of tT points
-    elif cooling_hist_type == 2:
+    # Options 2, 3: Do nothing here
+    elif cooling_hist_type == 2 or cooling_hist_type == 3:
         pass
 
     # Raise error if an unsupported value is given for cooling_hist_type
     else:
-        raise ValueError("Bad value for cooling_hist_type. Should be 1 or 2.")
+        raise ValueError("Bad value for cooling_hist_type. Should be 1, 2, or 3.")
 
     # Create arrays of U concentrations
     ap_u = np.linspace(ap_u_min, ap_u_max, num_points)
@@ -529,6 +556,11 @@ def eu_vs_radius(
     zhe_age_list = []
     zr_x_list = []
     zr_y_list = []
+
+    # Read time-temperature history from file (if requested)
+    if cooling_hist_type == 3:
+        input_tt_path = os.path.join(wd_orig, input_tt_file)
+        time_hist, temp_hist = read_tt_history(input_tt_path)
 
     # Write cooling history points to file
     with open(tt_file, "w") as f:
