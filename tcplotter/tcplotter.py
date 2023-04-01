@@ -172,6 +172,7 @@ def read_tt_history(file, tt_type=1):
     # Return times and temperatures
     return times, temperatures
 
+
 # Define function for creating plot of cooling rates
 def time_vs_temp(
     cooling_rate_min=0.1,
