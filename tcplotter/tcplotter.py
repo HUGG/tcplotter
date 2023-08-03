@@ -11,8 +11,8 @@ import subprocess
 
 # Define function for calculating effective uranium concentration
 def calc_eu(uranium, thorium):
-    """Calculates effective uranium concentration from U, Th inputs"""
-    return uranium + 0.235 * thorium
+    """Calculates effective uranium concentration from U, Th inputs (Cooperdock et al., 2019)"""
+    return uranium + 0.238 * thorium
 
 
 # Define function to find which version of the RDAAM_He/ketch_aft to use
