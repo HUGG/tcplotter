@@ -184,7 +184,7 @@ def time_vs_temp(
     save_plot=False,
     plot_file_format="pdf",
     plot_dpi=300,
-    plot_style="seaborn-whitegrid",
+    plot_style="seaborn-v0_8-whitegrid",
     fill_between=True,
     display_plot=True,
 ):
@@ -211,7 +211,7 @@ def time_vs_temp(
         File format for saving plot to file (examples: png, pdf, svg, eps).
     plot_dpi : int, default=300
         Saved plot resolution in dots per inch.
-    plot_style : str, default='seaborn-whitegrid'
+    plot_style : str, default='seaborn-v0_8-whitegrid'
         Style sheet used for plotting. See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html.
     fill_between : bool, default=True
         Flag for whether to fill area between min, max cooling rates.
@@ -334,7 +334,7 @@ def eu_vs_radius(
     save_plot=False,
     plot_file_format="pdf",
     plot_dpi=300,
-    plot_style="seaborn-colorblind",
+    plot_style="seaborn-v0_8-colorblind",
     plot_colormap="plasma",
     plot_alpha=1.0,
     plot_contour_lines=12,
@@ -406,7 +406,7 @@ def eu_vs_radius(
         File format for saving plot(s) to file (examples: png, pdf, svg, eps).
     plot_dpi : int, default=300
         Saved plot resolution in dots per inch.
-    plot_style : str, default='seaborn-colorblind'
+    plot_style : str, default='seaborn-v0_8-colorblind'
         Style sheet used for plotting. See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html.
     plot_colormap : str, default='plasma'
         Colormap used for plotting. See https://matplotlib.org/stable/tutorials/colors/colormaps.html.
@@ -493,7 +493,7 @@ def eu_vs_radius(
     elif plot_type == 2:
         model_type = "zircon age/Tc (eU vs. radius)"
     elif plot_type == 3:
-        model_type = "apatite/zircon age/Tc (eU vs. radius)"
+        model_type = "apatite, zircon age/Tc (eU vs. radius)"
     else:
         raise ValueError("Bad value for plot_type. Should be 1, 2, or 3.")
 
@@ -1200,7 +1200,7 @@ def rate_vs_radius_eu(
     save_plot=False,
     plot_file_format="pdf",
     plot_dpi=300,
-    plot_style="seaborn-colorblind",
+    plot_style="seaborn-v0_8-colorblind",
     plot_colormap="plasma",
     plot_alpha=1.0,
     plot_contour_lines=12,
@@ -1264,7 +1264,7 @@ def rate_vs_radius_eu(
         File format for saving plot to file (examples: png, pdf, svg, eps).
     plot_dpi : int, default=300
         Saved plot resolution in dots per inch.
-    plot_style : str, default='seaborn-colorblind'
+    plot_style : str, default='seaborn-v0_8-colorblind'
         Style sheet used for plotting. See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html.
     plot_colormap : str, default='plasma'
         Colormap used for plotting. See https://matplotlib.org/stable/tutorials/colors/colormaps.html.
@@ -1340,7 +1340,7 @@ def rate_vs_radius_eu(
     elif plot_type == 2:
         model_type = "zircon age/Tc (cooling rate vs. radius/eU)"
     elif plot_type == 3:
-        model_type = "apatite/zircon age/Tc (cooling rate vs. radius/eU)"
+        model_type = "ap, zr age/Tc (cooling rate vs. radius/eU)"
     else:
         raise ValueError("Bad value for parameter plot_type. Must be 1, 2, or 3.")
 
@@ -1893,7 +1893,7 @@ def rate_vs_age_tc(
     save_plot=False,
     plot_file_format="pdf",
     plot_dpi=300,
-    plot_style="seaborn-colorblind",
+    plot_style="seaborn-v0_8-colorblind",
     plot_alpha=0.6,
     plot_grid=True,
     display_plot=True,
@@ -1962,7 +1962,7 @@ def rate_vs_age_tc(
         File format for saving plot to file (examples: png, pdf, svg, eps).
     plot_dpi : int, default=300
         Saved plot resolution in dots per inch.
-    plot_style : str, default='seaborn-colorblind'
+    plot_style : str, default='seaborn-v0_8-colorblind'
         Style sheet used for plotting. See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html.
     plot_alpha : float, default=0.6
         Transparency used for plotting fill colors for age swath plots.
@@ -2048,11 +2048,11 @@ def rate_vs_age_tc(
 
     # Set model type string
     if plot_type == 1:
-        model_type = "cooling rate versus closure temperature"
+        model_type = "cooling rate versus closure temp"
     elif plot_type == 2:
         model_type = "cooling rate versus age"
     elif plot_type == 3:
-        model_type = "cooling rate versus age and closure temperature"
+        model_type = "cooling rate versus age and closure temp"
 
     # Set plot style
     plt.style.use(plot_style)

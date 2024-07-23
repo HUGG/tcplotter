@@ -79,7 +79,7 @@ def main():
         "--plot-style",
         dest="plot_style",
         help="Style sheet used for plotting. See https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html.",
-        default="seaborn-whitegrid",
+        default="seaborn-v0_8-whitegrid",
         type=str,
     )
     parser.add_argument(
