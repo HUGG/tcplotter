@@ -709,6 +709,11 @@ def eu_vs_radius(
             vmax=age_max,
             alpha=plot_alpha,
         )
+
+        # This is the fix for the white lines between contour levels
+        for c in ap_contourf_age.collections:
+            c.set_edgecolor("face")
+
         if num_ahe_age_data > 0:
             ahe_label = f"AHe data (n = {num_ahe_age_data}"
             if calc_misfit:
@@ -735,10 +740,6 @@ def eu_vs_radius(
                 orientation="horizontal",
                 label="Apatite (U-Th)/He age (Ma)",
             )
-
-        # This is the fix for the white lines between contour levels
-        for c in ap_contourf_age.collections:
-            c.set_edgecolor("face")
 
         # Create closure temperature contour lines
         ap_contours_tc = ax[1].tricontour(
@@ -805,6 +806,11 @@ def eu_vs_radius(
             vmax=age_max,
             alpha=plot_alpha,
         )
+
+        # This is the fix for the white lines between contour levels
+        for c in zr_contourf_age.collections:
+            c.set_edgecolor("face")
+
         if num_zhe_age_data > 0:
             zhe_label = f"ZHe data (n = {num_zhe_age_data}"
             if calc_misfit:
@@ -831,10 +837,6 @@ def eu_vs_radius(
                 orientation="horizontal",
                 label="Zircon (U-Th)/He age (Ma)",
             )
-
-        # This is the fix for the white lines between contour levels
-        for c in zr_contourf_age.collections:
-            c.set_edgecolor("face")
 
         # Create closure temperature contour lines
         zr_contours_tc = ax[1].tricontour(
@@ -901,6 +903,11 @@ def eu_vs_radius(
             vmax=age_max,
             alpha=plot_alpha,
         )
+
+        # This is the fix for the white lines between contour levels
+        for c in ap_contourf_age.collections:
+            c.set_edgecolor("face")
+
         if num_ahe_age_data > 0:
             ahe_label = f"AHe data (n = {num_ahe_age_data}"
             if calc_misfit:
@@ -927,10 +934,6 @@ def eu_vs_radius(
                 orientation="horizontal",
                 label="Apatite (U-Th)/He age (Ma)",
             )
-
-        # This is the fix for the white lines between contour levels
-        for c in ap_contourf_age.collections:
-            c.set_edgecolor("face")
 
         # Create closure temperature contour lines
         ap_contours_tc = ax[0][1].tricontour(
@@ -995,6 +998,11 @@ def eu_vs_radius(
             vmax=age_max,
             alpha=plot_alpha,
         )
+
+        # This is the fix for the white lines between contour levels
+        for c in zr_contourf_age.collections:
+            c.set_edgecolor("face")
+
         if num_zhe_age_data > 0:
             zhe_label = f"ZHe data  (n = {num_zhe_age_data}"
             if calc_misfit:
@@ -1021,10 +1029,6 @@ def eu_vs_radius(
                 orientation="horizontal",
                 label="Zircon (U-Th)/He age (Ma)",
             )
-
-        # This is the fix for the white lines between contour levels
-        for c in zr_contourf_age.collections:
-            c.set_edgecolor("face")
 
         # Create closure temperature contour lines
         zr_contours_tc = ax[1][1].tricontour(
