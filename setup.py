@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='tcplotter',
-      version='0.3.8',
+      version='0.3.9',
       description='Plots thermochronometer ages and closure temperatures',
       url='https://github.com/HUGG/tcplotter',
       author='David Whipp',
@@ -13,7 +13,7 @@ setup(name='tcplotter',
               'time-vs-temp=tcplotter.time_vs_temp:main',
               'eu-vs-radius=tcplotter.eu_vs_radius:main',
               'rate-vs-radius-eu=tcplotter.rate_vs_radius_eu:main',
-              'rate-vs-age-tc=tcplotter.rate_vs_age_tc  :main',
+              'rate-vs-age-tc=tcplotter.rate_vs_age_tc:main',
           ],
       },
       zip_safe=False

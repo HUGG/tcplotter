@@ -103,3 +103,6 @@ jupyter_execute_notebooks = "off"
 
 # Allow myst admonition style
 myst_admonition_enable = True
+
+# Enable math config options
+myst_enable_extensions = ["dollarmath"]
