@@ -1625,19 +1625,17 @@ def rate_vs_radius_eu(
     # Plot only values for apatite (U-Th)/He
     if plot_type == 1:
         # --- Apatite cooling rate versus radius ---
-        # Create closure temperature contour lines
-        ap_contours_tc = ax[0].tricontour(
-            ap_x_list1,
-            ap_y_list1,
-            ahe_tc_list1,
-            plot_contour_lines,
-            linewidths=0.5,
-            colors="black",
-        )
-        # Use log x-axis scaling
-        ax[0].set_xscale("log")
-        # Add closure temperature contour labels
-        ax[0].clabel(ap_contours_tc)
+        # Create colored contour lines to fill gaps between filled contours in pdf files
+        if save_plot and plot_file_format=="pdf":
+            ap_contour_tc1 = ax[0].tricontour(
+                ap_x_list1,
+                ap_y_list1,
+                ahe_tc_list1,
+                plot_contour_fills,
+                cmap=plot_colormap,
+                alpha=plot_alpha,
+                linewidths=2.0,
+            )
         # Create closure temperature contour fill
         ap_contourf_tc1 = ax[0].tricontourf(
             ap_x_list1,
@@ -1647,14 +1645,43 @@ def rate_vs_radius_eu(
             cmap=plot_colormap,
             alpha=plot_alpha,
         )
-
-        # This is the fix for the white lines between contour levels
-        for c in ap_contourf_tc1.collections:
-            c.set_edgecolor("face")
+        # Create closure temperature contour lines
+        ap_contours_tc1 = ax[0].tricontour(
+            ap_x_list1,
+            ap_y_list1,
+            ahe_tc_list1,
+            plot_contour_lines,
+            linewidths=0.5,
+            colors="black",
+        )
+        # Use log x-axis scaling
+        ax[0].set_xscale("log")
+        # Add closure temperature contour labels
+        ax[0].clabel(ap_contours_tc1)
 
         # --- Apatite cooling rate versus eU plot ---
+        # Create colored contour lines to fill gaps between filled contours in pdf files
+        if save_plot and plot_file_format=="pdf":
+            ap_contour_tc2 = ax[1].tricontour(
+                ap_x_list2,
+                ap_y_list2,
+                ahe_tc_list2,
+                plot_contour_fills,
+                cmap=plot_colormap,
+                alpha=plot_alpha,
+                linewidths=2.0,
+            )
+        # Create closure temperature contour fill
+        ap_contourf_tc2 = ax[1].tricontourf(
+            ap_x_list2,
+            ap_y_list2,
+            ahe_tc_list2,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
         # Create closure temperature contour lines
-        ap_contours_tc = ax[1].tricontour(
+        ap_contours_tc2 = ax[1].tricontour(
             ap_x_list2,
             ap_y_list2,
             ahe_tc_list2,
@@ -1665,26 +1692,33 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1].clabel(ap_contours_tc)
-        # Create closure temperature contour fill
-        ap_contourf_tc2 = ax[1].tricontourf(
-            ap_x_list2,
-            ap_y_list2,
-            ahe_tc_list2,
-            plot_contour_fills,
-            cmap=plot_colormap,
-            alpha=plot_alpha,
-        )
-
-        # This is the fix for the white lines between contour levels
-        for c in ap_contourf_tc2.collections:
-            c.set_edgecolor("face")
+        ax[1].clabel(ap_contours_tc2)
 
     # Plot only values for zircon (U-Th)/He
     elif plot_type == 2:
         # --- Zircon cooling rate versus radius ---
+        # Create colored contour lines to fill gaps between filled contours in pdf files
+        if save_plot and plot_file_format=="pdf":
+            zr_contour_tc1 = ax[0].tricontour(
+                zr_x_list1,
+                zr_y_list1,
+                zhe_tc_list1,
+                plot_contour_fills,
+                cmap=plot_colormap,
+                alpha=plot_alpha,
+                linewidths=2.0,
+            )
+        # Create closure temperature contour fill
+        zr_contourf_tc1 = ax[0].tricontourf(
+            zr_x_list1,
+            zr_y_list1,
+            zhe_tc_list1,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
         # Create closure temperature contour lines
-        zr_contours_tc = ax[0].tricontour(
+        zr_contours_tc1 = ax[0].tricontour(
             zr_x_list1,
             zr_y_list1,
             zhe_tc_list1,
@@ -1695,24 +1729,31 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0].clabel(zr_contours_tc)
+        ax[0].clabel(zr_contours_tc1)
+
+        # --- Zircon cooling rate versus eU plot ---
+        # Create colored contour lines to fill gaps between filled contours in pdf files
+        if save_plot and plot_file_format=="pdf":
+            zr_contour_tc2 = ax[1].tricontour(
+                zr_x_list2,
+                zr_y_list2,
+                zhe_tc_list2,
+                plot_contour_fills,
+                cmap=plot_colormap,
+                alpha=plot_alpha,
+                linewidths=2.0,
+            )
         # Create closure temperature contour fill
-        zr_contourf_tc1 = ax[0].tricontourf(
-            zr_x_list1,
-            zr_y_list1,
-            zhe_tc_list1,
+        zr_contourf_tc2 = ax[1].tricontourf(
+            zr_x_list2,
+            zr_y_list2,
+            zhe_tc_list2,
             plot_contour_fills,
             cmap=plot_colormap,
             alpha=plot_alpha,
         )
-
-        # This is the fix for the white lines between contour levels
-        for c in zr_contourf_tc1.collections:
-            c.set_edgecolor("face")
-
-        # --- Zircon cooling rate versus eU plot ---
         # Create closure temperature contour lines
-        zr_contours_tc = ax[1].tricontour(
+        zr_contours_tc2 = ax[1].tricontour(
             zr_x_list2,
             zr_y_list2,
             zhe_tc_list2,
@@ -1723,26 +1764,33 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1].clabel(zr_contours_tc)
-        # Create closure temperature contour fill
-        zr_contourf_tc2 = ax[1].tricontourf(
-            zr_x_list2,
-            zr_y_list2,
-            zhe_tc_list2,
-            plot_contour_fills,
-            cmap=plot_colormap,
-            alpha=plot_alpha,
-        )
-
-        # This is the fix for the white lines between contour levels
-        for c in zr_contourf_tc2.collections:
-            c.set_edgecolor("face")
+        ax[1].clabel(zr_contours_tc2)
 
     # Plot values for apatite and zircon (U-Th)/He
     else:
         # --- Apatite cooling rate versus radius ---
+        # Create colored contour lines to fill gaps between filled contours in pdf files
+        if save_plot and plot_file_format=="pdf":
+            ap_contour_tc1 = ax[0][0].tricontour(
+                ap_x_list1,
+                ap_y_list1,
+                ahe_tc_list1,
+                plot_contour_fills,
+                cmap=plot_colormap,
+                alpha=plot_alpha,
+                linewidths=2.0,
+            )
+        # Create closure temperature contour fill
+        ap_contourf_tc1 = ax[0][0].tricontourf(
+            ap_x_list1,
+            ap_y_list1,
+            ahe_tc_list1,
+            plot_contour_fills,
+            cmap=plot_colormap,
+            alpha=plot_alpha,
+        )
         # Create closure temperature contour lines
-        ap_contours_tc = ax[0][0].tricontour(
+        ap_contours_tc1 = ax[0][0].tricontour(
             ap_x_list1,
             ap_y_list1,
             ahe_tc_list1,
@@ -1753,24 +1801,31 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[0][0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0][0].clabel(ap_contours_tc)
+        ax[0][0].clabel(ap_contours_tc1)
+
+        # --- Apatite cooling rate versus eU plot ---
+        # Create colored contour lines to fill gaps between filled contours in pdf files
+        if save_plot and plot_file_format=="pdf":
+            ap_contour_tc2 = ax[0][1].tricontour(
+                ap_x_list2,
+                ap_y_list2,
+                ahe_tc_list2,
+                plot_contour_fills,
+                cmap=plot_colormap,
+                alpha=plot_alpha,
+                linewidths=2.0,
+            )
         # Create closure temperature contour fill
-        ap_contourf_tc1 = ax[0][0].tricontourf(
-            ap_x_list1,
-            ap_y_list1,
-            ahe_tc_list1,
+        ap_contourf_tc2 = ax[0][1].tricontourf(
+            ap_x_list2,
+            ap_y_list2,
+            ahe_tc_list2,
             plot_contour_fills,
             cmap=plot_colormap,
             alpha=plot_alpha,
         )
-
-        # This is the fix for the white lines between contour levels
-        for c in ap_contourf_tc1.collections:
-            c.set_edgecolor("face")
-
-        # --- Apatite cooling rate versus eU plot ---
         # Create closure temperature contour lines
-        ap_contours_tc = ax[0][1].tricontour(
+        ap_contours_tc2 = ax[0][1].tricontour(
             ap_x_list2,
             ap_y_list2,
             ahe_tc_list2,
@@ -1781,24 +1836,31 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[0][1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[0][1].clabel(ap_contours_tc)
+        ax[0][1].clabel(ap_contours_tc2)
+
+        # --- Zircon cooling rate versus radius plot ---
+        # Create colored contour lines to fill gaps between filled contours in pdf files
+        if save_plot and plot_file_format=="pdf":
+            zr_contour_tc1 = ax[1][0].tricontour(
+                zr_x_list1,
+                zr_y_list1,
+                zhe_tc_list1,
+                plot_contour_fills,
+                cmap=plot_colormap,
+                alpha=plot_alpha,
+                linewidths=2.0,
+            )
         # Create closure temperature contour fill
-        ap_contourf_tc2 = ax[0][1].tricontourf(
-            ap_x_list2,
-            ap_y_list2,
-            ahe_tc_list2,
+        zr_contourf_tc1 = ax[1][0].tricontourf(
+            zr_x_list1,
+            zr_y_list1,
+            zhe_tc_list1,
             plot_contour_fills,
             cmap=plot_colormap,
             alpha=plot_alpha,
         )
-
-        # This is the fix for the white lines between contour levels
-        for c in ap_contourf_tc2.collections:
-            c.set_edgecolor("face")
-
-        # --- Zircon cooling rate versus radius plot ---
         # Create closure temperature contour lines
-        zr_contours_tc = ax[1][0].tricontour(
+        zr_contours_tc1 = ax[1][0].tricontour(
             zr_x_list1,
             zr_y_list1,
             zhe_tc_list1,
@@ -1809,24 +1871,31 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[1][0].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1][0].clabel(zr_contours_tc)
+        ax[1][0].clabel(zr_contours_tc1)
+
+        # --- Zircon cooling rate versus eU plot ---
+        # Create colored contour lines to fill gaps between filled contours in pdf files
+        if save_plot and plot_file_format=="pdf":
+            zr_contour_tc2 = ax[1][1].tricontour(
+                zr_x_list2,
+                zr_y_list2,
+                zhe_tc_list2,
+                plot_contour_fills,
+                cmap=plot_colormap,
+                alpha=plot_alpha,
+                linewidths=2.0,
+            )
         # Create closure temperature contour fill
-        zr_contourf_tc1 = ax[1][0].tricontourf(
-            zr_x_list1,
-            zr_y_list1,
-            zhe_tc_list1,
+        zr_contourf_tc2 = ax[1][1].tricontourf(
+            zr_x_list2,
+            zr_y_list2,
+            zhe_tc_list2,
             plot_contour_fills,
             cmap=plot_colormap,
             alpha=plot_alpha,
         )
-
-        # This is the fix for the white lines between contour levels
-        for c in zr_contourf_tc1.collections:
-            c.set_edgecolor("face")
-
-        # --- Zircon cooling rate versus eU plot ---
         # Create closure temperature contour lines
-        zr_contours_tc = ax[1][1].tricontour(
+        zr_contours_tc2 = ax[1][1].tricontour(
             zr_x_list2,
             zr_y_list2,
             zhe_tc_list2,
@@ -1837,20 +1906,7 @@ def rate_vs_radius_eu(
         # Use log x-axis scaling
         ax[1][1].set_xscale("log")
         # Add closure temperature contour labels
-        ax[1][1].clabel(zr_contours_tc)
-        # Create closure temperature contour fill
-        zr_contourf_tc2 = ax[1][1].tricontourf(
-            zr_x_list2,
-            zr_y_list2,
-            zhe_tc_list2,
-            plot_contour_fills,
-            cmap=plot_colormap,
-            alpha=plot_alpha,
-        )
-
-        # This is the fix for the white lines between contour levels
-        for c in zr_contourf_tc2.collections:
-            c.set_edgecolor("face")
+        ax[1][1].clabel(zr_contours_tc2)
 
     # Format plot
 
