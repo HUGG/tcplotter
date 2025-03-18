@@ -2,7 +2,7 @@ name: thermochron-binder
 channels:
   - conda-forge
 dependencies:
-  - matplotlib
+  - matplotlib >= 3.8
   - numpy
   - scipy
   - IPython
