@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='tcplotter',
-      version='0.3.9',
+      version='0.3.10',
       description='Plots thermochronometer ages and closure temperatures',
       url='https://github.com/HUGG/tcplotter',
       author='David Whipp',
