@@ -688,7 +688,7 @@ def eu_vs_radius(
             age_min = min(ahe_age_list)
             age_max = max(ahe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             ap_contour_age = ax[0].tricontour(
                 ap_x_list,
                 ap_y_list,
@@ -751,7 +751,7 @@ def eu_vs_radius(
             )
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             ap_contour_tc = ax[1].tricontour(
                 ap_x_list,
                 ap_y_list,
@@ -801,7 +801,7 @@ def eu_vs_radius(
             age_min = min(zhe_age_list)
             age_max = max(zhe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             zr_contour_age = ax[0].tricontour(
                 zr_x_list,
                 zr_y_list,
@@ -864,7 +864,7 @@ def eu_vs_radius(
             )
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             zr_contour_tc = ax[1].tricontour(
                 zr_x_list,
                 zr_y_list,
@@ -914,7 +914,7 @@ def eu_vs_radius(
             age_min = min(ahe_age_list)
             age_max = max(ahe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             ap_contour_age = ax[0][0].tricontour(
                 ap_x_list,
                 ap_y_list,
@@ -977,7 +977,7 @@ def eu_vs_radius(
             )
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             ap_contour_tc = ax[0][1].tricontour(
                 ap_x_list,
                 ap_y_list,
@@ -1025,7 +1025,7 @@ def eu_vs_radius(
             age_min = min(zhe_age_list)
             age_max = max(zhe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             zr_contour_age = ax[1][0].tricontour(
                 zr_x_list,
                 zr_y_list,
@@ -1088,7 +1088,7 @@ def eu_vs_radius(
             )
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             zr_contour_tc = ax[1][1].tricontour(
                 zr_x_list,
                 zr_y_list,
@@ -1626,7 +1626,7 @@ def rate_vs_radius_eu(
     if plot_type == 1:
         # --- Apatite cooling rate versus radius ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             ap_contour_tc1 = ax[0].tricontour(
                 ap_x_list1,
                 ap_y_list1,
@@ -1661,7 +1661,7 @@ def rate_vs_radius_eu(
 
         # --- Apatite cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             ap_contour_tc2 = ax[1].tricontour(
                 ap_x_list2,
                 ap_y_list2,
@@ -1698,7 +1698,7 @@ def rate_vs_radius_eu(
     elif plot_type == 2:
         # --- Zircon cooling rate versus radius ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             zr_contour_tc1 = ax[0].tricontour(
                 zr_x_list1,
                 zr_y_list1,
@@ -1733,7 +1733,7 @@ def rate_vs_radius_eu(
 
         # --- Zircon cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             zr_contour_tc2 = ax[1].tricontour(
                 zr_x_list2,
                 zr_y_list2,
@@ -1770,7 +1770,7 @@ def rate_vs_radius_eu(
     else:
         # --- Apatite cooling rate versus radius ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             ap_contour_tc1 = ax[0][0].tricontour(
                 ap_x_list1,
                 ap_y_list1,
@@ -1805,7 +1805,7 @@ def rate_vs_radius_eu(
 
         # --- Apatite cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             ap_contour_tc2 = ax[0][1].tricontour(
                 ap_x_list2,
                 ap_y_list2,
@@ -1840,7 +1840,7 @@ def rate_vs_radius_eu(
 
         # --- Zircon cooling rate versus radius plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             zr_contour_tc1 = ax[1][0].tricontour(
                 zr_x_list1,
                 zr_y_list1,
@@ -1875,7 +1875,7 @@ def rate_vs_radius_eu(
 
         # --- Zircon cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
-        if save_plot and plot_file_format=="pdf":
+        if save_plot and plot_file_format == "pdf":
             zr_contour_tc2 = ax[1][1].tricontour(
                 zr_x_list2,
                 zr_y_list2,
@@ -2303,7 +2303,9 @@ def rate_vs_age_tc(
         if plot_type == 1:
             ax[i].semilogx(rate_list, ahe_tc_list, label="Apatite (U-Th)/He")
             ax[i].semilogx(rate_list, aft_tc_list, linestyle="--", label="Apatite FT")
-            ax[i].semilogx(rate_list, zhe_tc_list, linestyle="-.", label="Zircon (U-Th)/He")
+            ax[i].semilogx(
+                rate_list, zhe_tc_list, linestyle="-.", label="Zircon (U-Th)/He"
+            )
 
         # Create plots for rate versus age
         if plot_type == 2:
@@ -2367,7 +2369,9 @@ def rate_vs_age_tc(
                 hatch="//",
                 label=f"Zircon (U-Th)/He age ± {zhe_uncertainty * 100:.0f}%",
             )
-            ax[i][1].plot(rate_list, zhe_tc_list, linestyle="-.", label="Zircon (U-Th)/He")
+            ax[i][1].plot(
+                rate_list, zhe_tc_list, linestyle="-.", label="Zircon (U-Th)/He"
+            )
 
             # Set axis scalings
             ax[i][0].set_xscale("log")
