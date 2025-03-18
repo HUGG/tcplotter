@@ -2302,8 +2302,8 @@ def rate_vs_age_tc(
         # Create plots for rate versus closure temperature
         if plot_type == 1:
             ax[i].semilogx(rate_list, ahe_tc_list, label="Apatite (U-Th)/He")
-            ax[i].semilogx(rate_list, aft_tc_list, label="Apatite FT")
-            ax[i].semilogx(rate_list, zhe_tc_list, label="Zircon (U-Th)/He")
+            ax[i].semilogx(rate_list, aft_tc_list, linestyle="--", label="Apatite FT")
+            ax[i].semilogx(rate_list, zhe_tc_list, linestyle="-.", label="Zircon (U-Th)/He")
 
         # Create plots for rate versus age
         if plot_type == 2:
@@ -2319,6 +2319,7 @@ def rate_vs_age_tc(
                 aft_age_min,
                 aft_age_max,
                 alpha=plot_alpha,
+                hatch="||",
                 label=f"Apatite FT age ± {aft_uncertainty * 100:.0f}%",
             )
             ax[i].fill_between(
@@ -2326,6 +2327,7 @@ def rate_vs_age_tc(
                 zhe_age_min,
                 zhe_age_max,
                 alpha=plot_alpha,
+                hatch="//",
                 label=f"Zircon (U-Th)/He age ± {zhe_uncertainty * 100:.0f}%",
             )
 
@@ -2351,9 +2353,10 @@ def rate_vs_age_tc(
                 aft_age_min,
                 aft_age_max,
                 alpha=plot_alpha,
+                hatch="||",
                 label=f"Apatite FT age ± {aft_uncertainty * 100:.0f}%",
             )
-            ax[i][1].plot(rate_list, aft_tc_list, label="Apatite FT")
+            ax[i][1].plot(rate_list, aft_tc_list, linestyle="--", label="Apatite FT")
 
             # Plot ages and closure temperatures (high eU)
             ax[i][0].fill_between(
@@ -2361,9 +2364,10 @@ def rate_vs_age_tc(
                 zhe_age_min,
                 zhe_age_max,
                 alpha=plot_alpha,
+                hatch="//",
                 label=f"Zircon (U-Th)/He age ± {zhe_uncertainty * 100:.0f}%",
             )
-            ax[i][1].plot(rate_list, zhe_tc_list, label="Zircon (U-Th)/He")
+            ax[i][1].plot(rate_list, zhe_tc_list, linestyle="-.", label="Zircon (U-Th)/He")
 
             # Set axis scalings
             ax[i][0].set_xscale("log")
