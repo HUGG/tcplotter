@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tcplotter"
+version = "0.3.10"
+authors = [
+    {name = "Dave Whipp", email = "david.whipp@helsinki.fi"},
+]
+#maintainers = [
+#    {name = "All the contributors"},
+#]
+description = "Plots thermochronometer ages and closure temperatures"
+keywords = ["thermochronology", "geology", "geophysics"]
+readme = "README.md"
+requires-python = ">=3.10.0"
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "scipy",
+]
+
+[project.urls]
+homepage = "https://tcplotter.readthedocs.io/"
+repository = "https://github.com/HUGG/tcplotter"
+documentation = "https://tcplotter.readthedocs.io/"
+
+[project.scripts]
+time-vs-temp = "tcplotter.time_vs_temp:main"
+eu-vs-radius = "tcplotter.eu_vs_radius:main"
+rate-vs-radius-eu = "tcplotter.rate_vs_radius_eu:main"
+rate-vs-age-tc = "tcplotter.rate_vs_age_tc:main"
