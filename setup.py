@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='tcplotter',
       version='0.3.10',
@@ -7,7 +7,7 @@ setup(name='tcplotter',
       author='David Whipp',
       author_email='david.whipp@helsinki.fi',
       license='MIT',
-      packages=['tcplotter'],
+      packages=find_packages("src"),
       entry_points={
           'console_scripts': [
               'time-vs-temp=tcplotter.time_vs_temp:main',
