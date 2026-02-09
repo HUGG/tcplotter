@@ -2448,7 +2448,8 @@ def rate_vs_age_tc(
     # Delete temporary tt file
     if clean_up_files:
         os.remove(tt_file)
-        os.remove("ft_length.csv")
+        if os.path.exists("ft_length.csv"):
+            os.remove("ft_length.csv")
 
     # Use tight layout
     plt.tight_layout()
