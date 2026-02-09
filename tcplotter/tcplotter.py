@@ -15,18 +15,18 @@ def calc_eu(uranium, thorium):
     return uranium + 0.238 * thorium
 
 
-# Define function to find which version of the RDAAM_He/ketch_aft to use
-def get_tc_exec(command):
-    """Returns the location of the RDAAM_He or ketch_aft executable"""
-    if shutil.which(command) is not None:
-        tc_exec = command
-    elif Path("bin/" + command).is_file():
-        tc_exec = "bin/" + command
-    else:
-        raise FileNotFoundError(
-            f"Age calculation program {command} not found. See Troubleshooting in tcplotter docs online."
-        )
-    return tc_exec
+def check_execs() -> None:
+    """Checks whether all required executables exist."""
+
+    # Check that executables are in $PATH
+    for executable in ("RDAAM_He", "ketch_aft"):
+        exec_path = shutil.which(executable)
+        if exec_path is None:
+            raise FileNotFoundError(
+                f"{executable} executable not found. See instructions at https://github.com/HUGG/Tc_core to fix this."
+            )
+
+    return None
 
 
 # Function for reading age data file
@@ -451,6 +451,9 @@ def eu_vs_radius(
             )
             use_widget = False
 
+    # Define location of RDAAM executable
+    rdaam_path = shutil.which("RDAAM_He")
+
     # Ensure relative paths work by setting working dir to dir containing this script file
     wd_orig = os.getcwd()
     script_path = os.path.abspath(__file__)
@@ -499,9 +502,6 @@ def eu_vs_radius(
 
     # Define time-temperature history filename
     tt_file = "simple_time_temp.txt"
-
-    # Get age calculation executable(s) to use
-    rdaam_command = get_tc_exec("RDAAM_He")
 
     # Set plot style
     plt.style.use(plot_style)
@@ -613,7 +613,7 @@ def eu_vs_radius(
 
             # Calculate (U-Th)/He ages
             command = (
-                rdaam_command
+                rdaam_path
                 + " "
                 + tt_file
                 + " "
@@ -1374,6 +1374,9 @@ def rate_vs_radius_eu(
             )
             use_widget = False
 
+    # Define location of RDAAM executable
+    rdaam_path = shutil.which("RDAAM_He")
+
     # Ensure relative paths work by setting working dir to dir containing this script file
     wd_orig = os.getcwd()
     script_path = os.path.abspath(__file__)
@@ -1414,9 +1417,6 @@ def rate_vs_radius_eu(
 
     # Define time-temperature history filename
     tt_file = "simple_time_temp.txt"
-
-    # Get age calculation executable(s) to use
-    rdaam_command = get_tc_exec("RDAAM_He")
 
     # Set plot style
     plt.style.use(plot_style)
@@ -1503,7 +1503,7 @@ def rate_vs_radius_eu(
 
             # Calculate (U-Th)/He ages
             command = (
-                rdaam_command
+                rdaam_path
                 + " "
                 + tt_file
                 + " "
@@ -1580,7 +1580,7 @@ def rate_vs_radius_eu(
 
             # Calculate (U-Th)/He ages
             command = (
-                rdaam_command
+                rdaam_path
                 + " "
                 + tt_file
                 + " "
@@ -2126,6 +2126,12 @@ def rate_vs_age_tc(
             )
             use_widget = False
 
+    # Define location of RDAAM executable
+    rdaam_path = shutil.which("RDAAM_He")
+
+    # Define location of ketch_aft executable
+    ketch_path = shutil.which("ketch_aft")
+
     # Ensure relative paths work by setting working dir to dir containing this script file
     wd_orig = os.getcwd()
     script_path = os.path.abspath(__file__)
@@ -2162,10 +2168,6 @@ def rate_vs_age_tc(
 
     # Define time-temperature history filename
     tt_file = "simple_time_temp.txt"
-
-    # Get age calculation executable(s) to use
-    rdaam_command = get_tc_exec("RDAAM_He")
-    ketch_command = get_tc_exec("ketch_aft")
 
     # Calculate total number of models that will be run
     total_models = len(ap_u_list) * len(rates)
@@ -2233,7 +2235,7 @@ def rate_vs_age_tc(
 
             # Calculate He ages
             command = (
-                rdaam_command
+                rdaam_path
                 + " "
                 + tt_file
                 + " "
@@ -2259,7 +2261,7 @@ def rate_vs_age_tc(
             corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
 
             # Calculate AFT age
-            command = ketch_command + " " + tt_file
+            command = ketch_path + " " + tt_file
             p = subprocess.Popen(
                 command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
             )
