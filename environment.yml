@@ -1,8 +1,8 @@
-name: thermochron-binder
+name: tcplotter-binder
 channels:
   - conda-forge
 dependencies:
   - matplotlib >= 3.8
   - numpy
   - scipy
-  - IPython
+  - python >= 3.10

@@ -254,8 +254,8 @@ void RDAAM_PrepModel()
 
   // Now initialize totals, alpha stopping
   double xi, xs;
-	double innerVol, outerVol, rad;
-  double sumpc, x, xp, jp, frac;
+  double innerVol, outerVol, rad;
+  double x, xp, jp, frac;
 
   // Set up integration variables
   int aDeplRad = 100 * ceil(20.0/radius);   // in grid nodes
