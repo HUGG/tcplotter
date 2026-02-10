@@ -6,7 +6,7 @@
 T\ :sub:`c`\ plotter
 =====================================
 
-T\ :sub:`c`\ plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots from the article "Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers" by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
+T\ :sub:`c`\ plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots from the article "Short communication: Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers" by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
 
 .. figure:: img/figure4-high-res.png
    :scale: 20 %
