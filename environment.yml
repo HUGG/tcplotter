@@ -6,3 +6,6 @@ dependencies:
   - numpy
   - scipy
   - python >= 3.10
+  - pip
+  - pip:
+    - tcplotter
