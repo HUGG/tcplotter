@@ -2,7 +2,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 import numpy as np
-import os
 from pathlib import Path
 from scipy.interpolate import interp1d, RegularGridInterpolator
 import shutil
@@ -27,6 +26,13 @@ def check_execs() -> None:
             )
 
     return None
+
+
+def create_output_directory(wd, dir=""):
+    """Creates a new directory in working directory."""
+    newdir = wd / dir
+    newdir.mkdir(parents=True, exist_ok=True)
+    return newdir
 
 
 # Function for reading age data file
@@ -223,11 +229,8 @@ def time_vs_temp(
     None
     """
 
-    # Ensure relative paths work by setting working dir to dir containing this script file
-    wd_orig = os.getcwd()
-    script_path = os.path.abspath(__file__)
-    dir_name = os.path.dirname(script_path)
-    os.chdir(dir_name)
+    # Define working directory
+    wd = Path.cwd()
 
     # Find time and temperature bounds for plot
     time_plot_min = min(time_max, temp_max / cooling_rate_min)
@@ -298,16 +301,16 @@ def time_vs_temp(
 
     # Save plot if requested
     if save_plot:
+        # Create output directory, if needed
+        create_output_directory(wd, dir=plot_file_format)
         # Set plot filename and save plot
-        plot_filename = "time_vs_temp_" + str(plot_dpi) + "dpi." + plot_file_format
-        plt.savefig(wd_orig + "/" + plot_filename, dpi=plot_dpi)
+        plot_savename = "time_vs_temp_" + str(plot_dpi) + "dpi." + plot_file_format
+        plot_save_path = wd / plot_file_format / plot_savename
+        plt.savefig(plot_save_path, dpi=plot_dpi)
 
     # Display plot if requested
     if display_plot:
         plt.show()
-
-    # Revert to original working directory
-    os.chdir(wd_orig)
 
     return None
 
@@ -454,11 +457,8 @@ def eu_vs_radius(
     # Define location of RDAAM executable
     rdaam_path = shutil.which("RDAAM_He")
 
-    # Ensure relative paths work by setting working dir to dir containing this script file
-    wd_orig = os.getcwd()
-    script_path = os.path.abspath(__file__)
-    dir_name = os.path.dirname(script_path)
-    os.chdir(dir_name)
+    # Define working directory
+    wd = Path.cwd()
 
     # Define cooling history using constant cooling rate
     if cooling_hist_type == 1:
@@ -501,7 +501,7 @@ def eu_vs_radius(
         raise ValueError("Bad value for plot_type. Should be 1, 2, or 3.")
 
     # Define time-temperature history filename
-    tt_file = "simple_time_temp.txt"
+    tt_filename = "simple_time_temp.txt"
 
     # Set plot style
     plt.style.use(plot_style)
@@ -517,7 +517,7 @@ def eu_vs_radius(
     num_zhe_age_data = 0
     if len(age_data_file) > 0:
         print(f"Reading age data file {age_data_file}...")
-        fp = os.path.join(wd_orig, age_data_file)
+        fp = wd / age_data_file
         num_ahe_age_data, ahe_age_data, num_zhe_age_data, zhe_age_data = read_age_data(
             fp, ap_x, ap_y, zr_x, zr_y
         )
@@ -560,11 +560,11 @@ def eu_vs_radius(
 
     # Read time-temperature history from file (if requested)
     if cooling_hist_type == 3:
-        input_tt_path = os.path.join(wd_orig, input_tt_file)
+        input_tt_path = wd / input_tt_file
         time_hist, temp_hist = read_tt_history(input_tt_path)
 
     # Write cooling history points to file
-    with open(tt_file, "w") as f:
+    with open(tt_filename, "w") as f:
         for i in range(len(time_hist)):
             f.write(f"{time_hist[i]:.4f},{temp_hist[i]:.1f}\n")
 
@@ -615,7 +615,7 @@ def eu_vs_radius(
             command = (
                 rdaam_path
                 + " "
-                + tt_file
+                + tt_filename
                 + " "
                 + str(ap_radius)
                 + " "
@@ -655,7 +655,8 @@ def eu_vs_radius(
                 )
 
     # Clean up Tt file
-    os.remove(tt_file)
+    tt_file = Path(wd, tt_filename)
+    tt_file.unlink()
 
     # Calculate age misfits if age data file is used and option is selected
     if calc_misfit:
@@ -1170,6 +1171,9 @@ def eu_vs_radius(
 
     # Save plot if desired
     if save_plot:
+        # Create output directory, if needed
+        create_output_directory(wd, dir=plot_file_format)
+
         # Set file name prefix
         plot_filename = "eu_vs_radius"
 
@@ -1190,7 +1194,8 @@ def eu_vs_radius(
                 + "dpi."
                 + plot_file_format
             )
-        plt.savefig(wd_orig + "/" + plot_savename, dpi=plot_dpi)
+        plot_save_path = wd / plot_file_format / plot_savename
+        plt.savefig(plot_save_path, dpi=plot_dpi)
 
     # Display plot if desired
     if display_plot:
@@ -1224,6 +1229,9 @@ def eu_vs_radius(
 
         # Save plot if desired
         if save_plot:
+            # Create output directory, if needed
+            create_output_directory(wd, dir=plot_file_format)
+
             # Define plot filename and save plot
             plot_savename2 = (
                 plot_filename
@@ -1232,14 +1240,12 @@ def eu_vs_radius(
                 + "dpi."
                 + plot_file_format
             )
-            plt.savefig(wd_orig + "/" + plot_savename2, dpi=plot_dpi)
+            plot_save_path = wd / plot_file_format / plot_savename2
+            plt.savefig(plot_save_path, dpi=plot_dpi)
 
         # Display plot if desired
         if display_plot:
             plt.show()
-
-    # Revert to original working directory
-    os.chdir(wd_orig)
 
     return None
 
@@ -1377,11 +1383,8 @@ def rate_vs_radius_eu(
     # Define location of RDAAM executable
     rdaam_path = shutil.which("RDAAM_He")
 
-    # Ensure relative paths work by setting working dir to dir containing this script file
-    wd_orig = os.getcwd()
-    script_path = os.path.abspath(__file__)
-    dir_name = os.path.dirname(script_path)
-    os.chdir(dir_name)
+    # Define working directory
+    wd = Path.cwd()
 
     # Create arrays of U concentrations
     ap_u = np.linspace(ap_u_min, ap_u_max, num_points)
@@ -1416,7 +1419,7 @@ def rate_vs_radius_eu(
         raise ValueError("Bad value for parameter plot_type. Must be 1, 2, or 3.")
 
     # Define time-temperature history filename
-    tt_file = "simple_time_temp.txt"
+    tt_filename = "simple_time_temp.txt"
 
     # Set plot style
     plt.style.use(plot_style)
@@ -1491,7 +1494,7 @@ def rate_vs_radius_eu(
 
             # Write synthetic cooling history points to file
             start_time = temp_max / rate
-            with open(tt_file, "w") as f:
+            with open(tt_filename, "w") as f:
                 f.write("0.0,0.0\n")
                 f.write("{0:.4f},{1:.1f}".format(start_time, temp_max))
 
@@ -1505,7 +1508,7 @@ def rate_vs_radius_eu(
             command = (
                 rdaam_path
                 + " "
-                + tt_file
+                + tt_filename
                 + " "
                 + str(ap_radius)
                 + " "
@@ -1568,7 +1571,7 @@ def rate_vs_radius_eu(
 
             # Write synthetic cooling history points to file
             start_time = temp_max / rate
-            with open(tt_file, "w") as f:
+            with open(tt_filename, "w") as f:
                 f.write("0.0,0.0\n")
                 f.write("{0:.4f},{1:.1f}".format(start_time, temp_max))
 
@@ -1582,7 +1585,7 @@ def rate_vs_radius_eu(
             command = (
                 rdaam_path
                 + " "
-                + tt_file
+                + tt_filename
                 + " "
                 + str(ap_radius)
                 + " "
@@ -1620,7 +1623,8 @@ def rate_vs_radius_eu(
                 )
 
     # Clean up temporary tt file
-    os.remove(tt_file)
+    tt_file = Path(wd, tt_filename)
+    tt_file.unlink()
 
     # Plot only values for apatite (U-Th)/He
     if plot_type == 1:
@@ -1958,6 +1962,9 @@ def rate_vs_radius_eu(
 
     # Save plot if requested
     if save_plot:
+        # Create output directory, if needed
+        create_output_directory(wd, dir=plot_file_format)
+
         # Set file name prefix
         plot_filename = "rate_vs_radius_eu"
 
@@ -1978,14 +1985,12 @@ def rate_vs_radius_eu(
                 + "dpi."
                 + plot_file_format
             )
-        plt.savefig(wd_orig + "/" + plot_savename, dpi=plot_dpi)
+        plot_save_path = wd / plot_file_format / plot_savename
+        plt.savefig(plot_save_path, dpi=plot_dpi)
 
     # Save plot if requested
     if display_plot:
         plt.show()
-
-    # Revert to original working directory
-    os.chdir(wd_orig)
 
     return None
 
@@ -2132,11 +2137,8 @@ def rate_vs_age_tc(
     # Define location of ketch_aft executable
     ketch_path = shutil.which("ketch_aft")
 
-    # Ensure relative paths work by setting working dir to dir containing this script file
-    wd_orig = os.getcwd()
-    script_path = os.path.abspath(__file__)
-    dir_name = os.path.dirname(script_path)
-    os.chdir(dir_name)
+    # Define working directory
+    wd = Path.cwd()
 
     # Make lists for apatite and zircon uranium concentrations
     ap_u_list = [ap_u1, ap_u2, ap_u3]
@@ -2167,7 +2169,7 @@ def rate_vs_age_tc(
     ]
 
     # Define time-temperature history filename
-    tt_file = "simple_time_temp.txt"
+    tt_filename = "simple_time_temp.txt"
 
     # Calculate total number of models that will be run
     total_models = len(ap_u_list) * len(rates)
@@ -2229,7 +2231,7 @@ def rate_vs_age_tc(
 
             # Define thermal history
             start_time = temp_max / rate
-            with open(tt_file, "w") as f:
+            with open(tt_filename, "w") as f:
                 f.write("0.0,0.0\n")
                 f.write("{0:.4f},{1:.1f}".format(start_time, temp_max))
 
@@ -2237,7 +2239,7 @@ def rate_vs_age_tc(
             command = (
                 rdaam_path
                 + " "
-                + tt_file
+                + tt_filename
                 + " "
                 + str(ap_rad)
                 + " "
@@ -2261,7 +2263,7 @@ def rate_vs_age_tc(
             corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
 
             # Calculate AFT age
-            command = ketch_path + " " + tt_file
+            command = ketch_path + " " + tt_filename
             p = subprocess.Popen(
                 command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
             )
@@ -2447,24 +2449,27 @@ def rate_vs_age_tc(
 
     # Delete temporary tt file
     if clean_up_files:
-        os.remove(tt_file)
-        if os.path.exists("ft_length.csv"):
-            os.remove("ft_length.csv")
+        tt_file = Path(wd, tt_filename)
+        tt_file.unlink()
+        ft_path = Path(wd, "ft_length.csv")
+        if ft_path.exists():
+            ft_path.unlink()
 
     # Use tight layout
     plt.tight_layout()
 
     # Save plot if requested
     if save_plot:
+        # Create output directory, if needed
+        create_output_directory(wd, dir=plot_file_format)
+
         # Define plot filename and save plot
-        plot_filename = plot_filename + "_" + str(plot_dpi) + "dpi." + plot_file_format
-        plt.savefig(wd_orig + "/" + plot_filename, dpi=plot_dpi)
+        plot_savename = plot_filename + "_" + str(plot_dpi) + "dpi." + plot_file_format
+        plot_save_path = wd / plot_file_format / plot_savename
+        plt.savefig(plot_save_path, dpi=plot_dpi)
 
     # Show plot if requested
     if display_plot:
         plt.show()
-
-    # Revert to original working directory
-    os.chdir(wd_orig)
 
     return None
