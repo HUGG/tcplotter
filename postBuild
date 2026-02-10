@@ -1,5 +1,6 @@
 # Compile codes for (U-Th)/He and FT age prediction
-cd tcplotter/src/ketch_aft
+git clone https://github.com/HUGG/Tc_core.git
+cd Tc_core/src/ketch_aft
 make && make install
 cd ..
 cd RDAAM_He
