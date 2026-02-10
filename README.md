@@ -1,6 +1,7 @@
 # T<sub>c</sub>plotter code description and instructions for use
 
 [![DOI](https://zenodo.org/badge/444915688.svg)](https://zenodo.org/badge/latestdoi/444915688)
+[![PyPI - Version](https://img.shields.io/pypi/v/tcplotter)](https://pypi.org/project/tcplotter/)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/tcplotter/badges/version.svg)](https://anaconda.org/conda-forge/tcplotter)
 [![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -17,10 +18,15 @@ This will open an interactive web interface to the code where you can see how it
 
 ## Installation
 
-Using the code [via Binder](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/tcplotter.ipynb) is the easiest option.
-If you would like to install the software for your own use, you can find detailed instructions on the [T<sub>c</sub>plotter documentation page](https://tcplotter.readthedocs.io/en/latest/installation.html#installing-the-latest-version-of-t-sub-c-sub-plotter-from-github).
+T<sub>c</sub>plotter can be installed in your Python environment using `pip`.
 
-**Note**: In order for T<sub>c</sub>1D to work properly you will also need to install the thermochronometer age prediction programs available in the [T<sub>c</sub>core package](https://github.com/HUGG/Tc_core/).
+```bash
+pip install tcplotter
+```
+
+You can also find installation instructions on the [T<sub>c</sub>plotter documentation page](https://tcplotter.readthedocs.io/en/latest/installation.html#installing-the-latest-version-of-t-sub-c-sub-plotter-from-github).
+
+**Note**: In order for T<sub>c</sub>plotter to work properly you will also need to install the thermochronometer age prediction programs available in the [T<sub>c</sub>core package](https://github.com/HUGG/Tc_core/).
 
 ## Usage
 
