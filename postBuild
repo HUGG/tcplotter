@@ -1,3 +1,6 @@
+# Local install tcplotter
+pip install -e .
+
 # Compile codes for (U-Th)/He and FT age prediction
 git clone https://github.com/HUGG/Tc_core.git
 cd Tc_core/src/ketch_aft
