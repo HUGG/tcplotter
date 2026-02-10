@@ -1,10 +1,10 @@
 # T<sub>c</sub>plotter code description and instructions for use
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/tcplotter.ipynb)
-[![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest)
-[![Anaconda-Server Badge](https://anaconda.org/conda-forge/tcplotter/badges/version.svg)](https://anaconda.org/conda-forge/tcplotter)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/444915688.svg)](https://zenodo.org/badge/latestdoi/444915688)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/tcplotter/badges/version.svg)](https://anaconda.org/conda-forge/tcplotter)
+[![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/notebooks/tcplotter.ipynb)
 
 T<sub>c</sub>plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots presented in the article [Short communication: Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers](https://doi.org/10.5194/gchron-2021-29) by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
 The code is designed to be easy to use to either reproduce plots from the article or customize the plots for your own use.
@@ -12,29 +12,31 @@ Below you will find some essential details about using the code and detailed doc
 
 ## Getting started
 
-The easiest way to get started using T<sub>c</sub>plotter is by [using Binder](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/tcplotter.ipynb) either with the link here or by clicking on the Binder button above.
+The easiest way to get started using T<sub>c</sub>plotter is by [using Binder](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/notebooks/tcplotter.ipynb) either with the link here or by clicking on the Binder button above.
 This will open an interactive web interface to the code where you can see how it works and even create your own plots.
 
 ## Installation
 
-Currently, we recommend using the code [via Binder](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/tcplotter.ipynb) as the easiest option, as we do not yet have a Python package available for T<sub>c</sub>plotter.
+Using the code [via Binder](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/tcplotter.ipynb) is the easiest option.
 If you would like to install the software for your own use, you can find detailed instructions on the [T<sub>c</sub>plotter documentation page](https://tcplotter.readthedocs.io/en/latest/installation.html#installing-the-latest-version-of-t-sub-c-sub-plotter-from-github).
+
+**Note**: In order for T<sub>c</sub>1D to work properly you will also need to install the thermochronometer age prediction programs available in the [T<sub>c</sub>core package](https://github.com/HUGG/Tc_core/).
 
 ## Usage
 
 T<sub>c</sub>plotter can be used either as a function in a Python script or interpreter, or from the command line.
 The four main T<sub>c</sub>plotter functions/command-line tools are:
 
-- `time_vs_temp`
-- `eu_vs_radius`
-- `rate_vs_radius_eu`
-- `rate_vs_age_tc`
+- `time_vs_temp()`
+- `eu_vs_radius()`
+- `rate_vs_radius_eu()`
+- `rate_vs_age_tc()`
 
 Brief examples of possible usage for both cases can be found below.
 
 ### Usage in a Python script or interpreter
 
-Assuming the base `tcplotter` directory is your working directory, functions available in T<sub>c</sub>plotter can be imported as follows:
+Assuming you are working in Binder or have installed `tcplotter` locally, functions available in T<sub>c</sub>plotter can be imported as follows:
 
 ```python
 from tcplotter import time_vs_temp, eu_vs_radius, rate_vs_radius_eu, rate_vs_age_tc
@@ -55,16 +57,16 @@ help(eu_vs_radius)
 ### Command-line usage
 
 Command-line usage is similar to that for use in a Python script, except that the underscores in the function names have been replaced by hyphens.
-For example, assuming you are in a terminal in the `tcplotter/tcplotter` directory, you can type the following to use the `eu_vs_radius()` function:
+For example, again assuming you have installed `tcplotter` locally, you can type the following to use the `eu_vs_radius()` function:
 
 ```bash
-./eu-vs-radius --save-plot
+eu-vs-radius --save-plot
 ```
 
 To find more information about options available for command-line use you can include the `--help` or `-h` flags.
 
 ```bash
-./eu-vs-radius -h
+eu-vs-radius -h
 ```
 
 ## Attribution
