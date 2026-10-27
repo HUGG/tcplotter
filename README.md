@@ -94,7 +94,7 @@ You're also welcome to cite the manuscript related to T<sub>c</sub>plotter when 
 
 ### How to cite related articles
 
-The age prediction software used for calculating apatite and zircon (U-Th)/He and apatite fission-track ages (provided by [T<sub>c</sub>ages](https://github.com/HUGG/tccore)) was written by Richard Ketcham at the University of Texas, USA. Results published using this software should also cite the articles below:
+The age prediction software used for calculating apatite and zircon (U-Th)/He and apatite fission-track ages (provided by [T<sub>c</sub>ages](https://github.com/HUGG/tcages)) was written by Richard Ketcham at the University of Texas, USA. Results published using this software should also cite the articles below:
 
 - Flowers, R. M., Ketcham, R. A., Shuster, D. L., and Farley, K. A.: Apatite (U-Th)/He thermochronometry using a radiation damage accumulation and annealing model, Geochimica et Cosmochimica Acta, 73, 2347–2365, doi: [10.1016/j.gca.2009.01.015](https://doi.org/10.1016/j.gca.2009.01.015), 2009.
 
