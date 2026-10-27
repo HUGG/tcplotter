@@ -1,6 +1,6 @@
 # T<sub>c</sub>plotter code description and instructions for use
 
-[![DOI](https://zenodo.org/badge/444915688.svg)](https://zenodo.org/badge/latestdoi/444915688)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5958939.svg)](https://doi.org/10.5281/zenodo.5958939)
 [![Build, test, and deploy](https://github.com/HUGG/tcplotter/actions/workflows/publish-to-pypi.yml/badge.svg)](https://github.com/HUGG/tcplotter/actions/workflows/publish-to-pypi.yml)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Python versions](https://img.shields.io/pypi/pyversions/tcplotter)](https://pypi.org/project/tcplotter/)
