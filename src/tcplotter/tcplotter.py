@@ -52,7 +52,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                             f"Warning: eU concentration for {data[i][0].lower()} age on line {i + 1} not within modelled range."
                         )
                         print(
-                            f"         This age will be excluded from plotting and the misfit calculation."
+                            "         This age will be excluded from plotting and the misfit calculation."
                         )
                     # Check if value is not within radius range
                     elif not (min(ap_y) <= float(data[i][4]) <= max(ap_y)):
@@ -60,7 +60,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                             f"Warning: Grain radius for {data[i][0].lower()} age on line {i + 1} not within modelled range."
                         )
                         print(
-                            f"         This age will be excluded from plotting and the misfit calculation."
+                            "         This age will be excluded from plotting and the misfit calculation."
                         )
                     else:
                         ahe_age.append(float(data[i][1]))
@@ -76,7 +76,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                             f"Warning: eU concentration for {data[i][0].lower()} age {i + 1} not within modelled range."
                         )
                         print(
-                            f"         This age will be excluded from plotting and the misfit calculation."
+                            "         This age will be excluded from plotting and the misfit calculation."
                         )
                     # Check if value is not within radius range
                     elif not (min(zr_y) <= float(data[i][4]) <= max(zr_y)):
@@ -84,7 +84,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                             f"Warning: Grain radius for {data[i][0].lower()} age {i + 1} not within modelled range."
                         )
                         print(
-                            f"         This age will be excluded from plotting and the misfit calculation."
+                            "         This age will be excluded from plotting and the misfit calculation."
                         )
                     else:
                         zhe_age.append(float(data[i][1]))
@@ -104,7 +104,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                     print(
                         f"Warning: {data[i][0].lower()} age on line {i + 1} missing radius value."
                     )
-                print(f"         Age will not be plotted.")
+                print("         Age will not be plotted.")
         # Create new lists with data file values
         n_ahe = len(ahe_age)
         n_zhe = len(zhe_age)
@@ -137,7 +137,6 @@ def calculate_misfit(age_data, age_list, param_x, param_y):
         std_dev.append(age_data[1][i])
     # Calculate misfit
     misfit = chi_squared(measured_ages, predicted_ages, std_dev)
-    n_ages = len(measured_ages)
     return misfit[0]
 
 
@@ -633,9 +632,9 @@ def eu_vs_radius(
             )
         else:
             print(
-                f"Warning: Misfit calculation requested, but no AHe or ZHe ages found in data file."
+                "Warning: Misfit calculation requested, but no AHe or ZHe ages found in data file."
             )
-            print(f"         Misfit will not be calculated.")
+            print("         Misfit will not be calculated.")
 
     # Apatite eU versus radius
     if plot_type == 1:
@@ -648,7 +647,7 @@ def eu_vs_radius(
             age_max = max(ahe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_age = ax[0].tricontour(
+            ax[0].tricontour(
                 ap_x_list,
                 ap_y_list,
                 ahe_age_list,
@@ -660,7 +659,7 @@ def eu_vs_radius(
                 linewidths=2.0,
             )
         # Create age contour fill
-        ap_contourf_age = ax[0].tricontourf(
+        ax[0].tricontourf(
             ap_x_list,
             ap_y_list,
             ahe_age_list,
@@ -711,7 +710,7 @@ def eu_vs_radius(
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc = ax[1].tricontour(
+            ax[1].tricontour(
                 ap_x_list,
                 ap_y_list,
                 ahe_tc_list,
@@ -761,7 +760,7 @@ def eu_vs_radius(
             age_max = max(zhe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_age = ax[0].tricontour(
+            ax[0].tricontour(
                 zr_x_list,
                 zr_y_list,
                 zhe_age_list,
@@ -773,7 +772,7 @@ def eu_vs_radius(
                 linewidths=2.0,
             )
         # Create age contour fill
-        zr_contourf_age = ax[0].tricontourf(
+        ax[0].tricontourf(
             zr_x_list,
             zr_y_list,
             zhe_age_list,
@@ -824,7 +823,7 @@ def eu_vs_radius(
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc = ax[1].tricontour(
+            ax[1].tricontour(
                 zr_x_list,
                 zr_y_list,
                 zhe_tc_list,
@@ -874,7 +873,7 @@ def eu_vs_radius(
             age_max = max(ahe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_age = ax[0][0].tricontour(
+            ax[0][0].tricontour(
                 ap_x_list,
                 ap_y_list,
                 ahe_age_list,
@@ -886,7 +885,7 @@ def eu_vs_radius(
                 linewidths=2.0,
             )
         # Create age contour fill
-        ap_contourf_age = ax[0][0].tricontourf(
+        ax[0][0].tricontourf(
             ap_x_list,
             ap_y_list,
             ahe_age_list,
@@ -937,7 +936,7 @@ def eu_vs_radius(
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc = ax[0][1].tricontour(
+            ax[0][1].tricontour(
                 ap_x_list,
                 ap_y_list,
                 ahe_tc_list,
@@ -985,7 +984,7 @@ def eu_vs_radius(
             age_max = max(zhe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_age = ax[1][0].tricontour(
+            ax[1][0].tricontour(
                 zr_x_list,
                 zr_y_list,
                 zhe_age_list,
@@ -997,7 +996,7 @@ def eu_vs_radius(
                 linewidths=2.0,
             )
         # Create age contour fill
-        zr_contourf_age = ax[1][0].tricontourf(
+        ax[1][0].tricontourf(
             zr_x_list,
             zr_y_list,
             zhe_age_list,
@@ -1048,7 +1047,7 @@ def eu_vs_radius(
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc = ax[1][1].tricontour(
+            ax[1][1].tricontour(
                 zr_x_list,
                 zr_y_list,
                 zhe_tc_list,
@@ -1358,7 +1357,7 @@ def rate_vs_radius_eu(
 
     # Calculate effective uranium
     ap_eu = calc_eu(ap_u, ap_thorium)
-    zr_eu = calc_eu(zr_u, zr_thorium)
+    calc_eu(zr_u, zr_thorium)
 
     # Total number of models
     total_models = len(ap_u) * len(rates) + len(ap_rad) * len(rates)
@@ -1385,12 +1384,8 @@ def rate_vs_radius_eu(
     # Set plot loop variables
     ap_x1 = rates
     ap_y1 = ap_rad
-    zr_x1 = rates
-    zr_y1 = zr_rad
     ap_x2 = rates
     ap_y2 = ap_eu
-    zr_x2 = rates
-    zr_y2 = zr_eu
 
     # Create lists for storing closure temperatures, ages
     ahe_tc_list1 = []
@@ -1551,7 +1546,7 @@ def rate_vs_radius_eu(
         # --- Apatite cooling rate versus radius ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc1 = ax[0].tricontour(
+            ax[0].tricontour(
                 ap_x_list1,
                 ap_y_list1,
                 ahe_tc_list1,
@@ -1561,7 +1556,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        ap_contourf_tc1 = ax[0].tricontourf(
+        ax[0].tricontourf(
             ap_x_list1,
             ap_y_list1,
             ahe_tc_list1,
@@ -1586,7 +1581,7 @@ def rate_vs_radius_eu(
         # --- Apatite cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc2 = ax[1].tricontour(
+            ax[1].tricontour(
                 ap_x_list2,
                 ap_y_list2,
                 ahe_tc_list2,
@@ -1596,7 +1591,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        ap_contourf_tc2 = ax[1].tricontourf(
+        ax[1].tricontourf(
             ap_x_list2,
             ap_y_list2,
             ahe_tc_list2,
@@ -1623,7 +1618,7 @@ def rate_vs_radius_eu(
         # --- Zircon cooling rate versus radius ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc1 = ax[0].tricontour(
+            ax[0].tricontour(
                 zr_x_list1,
                 zr_y_list1,
                 zhe_tc_list1,
@@ -1633,7 +1628,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        zr_contourf_tc1 = ax[0].tricontourf(
+        ax[0].tricontourf(
             zr_x_list1,
             zr_y_list1,
             zhe_tc_list1,
@@ -1658,7 +1653,7 @@ def rate_vs_radius_eu(
         # --- Zircon cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc2 = ax[1].tricontour(
+            ax[1].tricontour(
                 zr_x_list2,
                 zr_y_list2,
                 zhe_tc_list2,
@@ -1668,7 +1663,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        zr_contourf_tc2 = ax[1].tricontourf(
+        ax[1].tricontourf(
             zr_x_list2,
             zr_y_list2,
             zhe_tc_list2,
@@ -1695,7 +1690,7 @@ def rate_vs_radius_eu(
         # --- Apatite cooling rate versus radius ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc1 = ax[0][0].tricontour(
+            ax[0][0].tricontour(
                 ap_x_list1,
                 ap_y_list1,
                 ahe_tc_list1,
@@ -1705,7 +1700,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        ap_contourf_tc1 = ax[0][0].tricontourf(
+        ax[0][0].tricontourf(
             ap_x_list1,
             ap_y_list1,
             ahe_tc_list1,
@@ -1730,7 +1725,7 @@ def rate_vs_radius_eu(
         # --- Apatite cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc2 = ax[0][1].tricontour(
+            ax[0][1].tricontour(
                 ap_x_list2,
                 ap_y_list2,
                 ahe_tc_list2,
@@ -1740,7 +1735,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        ap_contourf_tc2 = ax[0][1].tricontourf(
+        ax[0][1].tricontourf(
             ap_x_list2,
             ap_y_list2,
             ahe_tc_list2,
@@ -1765,7 +1760,7 @@ def rate_vs_radius_eu(
         # --- Zircon cooling rate versus radius plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc1 = ax[1][0].tricontour(
+            ax[1][0].tricontour(
                 zr_x_list1,
                 zr_y_list1,
                 zhe_tc_list1,
@@ -1775,7 +1770,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        zr_contourf_tc1 = ax[1][0].tricontourf(
+        ax[1][0].tricontourf(
             zr_x_list1,
             zr_y_list1,
             zhe_tc_list1,
@@ -1800,7 +1795,7 @@ def rate_vs_radius_eu(
         # --- Zircon cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc2 = ax[1][1].tricontour(
+            ax[1][1].tricontour(
                 zr_x_list2,
                 zr_y_list2,
                 zhe_tc_list2,
@@ -1810,7 +1805,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        zr_contourf_tc2 = ax[1][1].tricontourf(
+        ax[1][1].tricontourf(
             zr_x_list2,
             zr_y_list2,
             zhe_tc_list2,

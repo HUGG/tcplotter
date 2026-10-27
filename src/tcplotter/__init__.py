@@ -3,6 +3,8 @@ from .tcplotter import eu_vs_radius
 from .tcplotter import rate_vs_radius_eu
 from .tcplotter import rate_vs_age_tc
 
+__all__ = ["time_vs_temp", "eu_vs_radius", "rate_vs_radius_eu", "rate_vs_age_tc"]
+
 from importlib.metadata import PackageNotFoundError, version
 
 try:

@@ -36,7 +36,9 @@ def test_calc_eu():
 
 def test_rate_vs_age_tc_matches_reference(capsys):
     """Predicted ages match those from the original age prediction executables."""
-    tcplotter.rate_vs_age_tc(num_points=5, plot_type=3, display_plot=False, verbose=True)
+    tcplotter.rate_vs_age_tc(
+        num_points=5, plot_type=3, display_plot=False, verbose=True
+    )
     out = capsys.readouterr().out
     ages = re.findall(r"AHe: ([\d.]+) Ma.*AFT: ([\d.]+) Ma.*ZHe: ([\d.]+) Ma", out)
     assert len(ages) == len(REFERENCE_AGES)
@@ -66,7 +68,9 @@ def test_eu_vs_radius_custom_history():
 
 def test_eu_vs_radius_history_from_file(tmp_path):
     tt_file = tmp_path / "tt.csv"
-    tt_file.write_text("Time (Ma),Temperature (C)\n0.0,10.0\n5.0,60.0\n20.0,90.0\n40.0,250.0\n")
+    tt_file.write_text(
+        "Time (Ma),Temperature (C)\n0.0,10.0\n5.0,60.0\n20.0,90.0\n40.0,250.0\n"
+    )
     tcplotter.eu_vs_radius(
         num_points=3, cooling_hist_type=3, input_tt_file="tt.csv", display_plot=False
     )
@@ -101,7 +105,11 @@ def test_no_temporary_files_left(tmp_path):
 
 def test_save_plot(tmp_path):
     tcplotter.rate_vs_age_tc(
-        num_points=3, display_plot=False, save_plot=True, plot_file_format="png", plot_dpi=50
+        num_points=3,
+        display_plot=False,
+        save_plot=True,
+        plot_file_format="png",
+        plot_dpi=50,
     )
     assert len(list((tmp_path / "png").glob("*.png"))) == 1
 
@@ -109,6 +117,7 @@ def test_save_plot(tmp_path):
 def test_clean_up_files_is_deprecated():
     with pytest.warns(DeprecationWarning, match="clean_up_files"):
         tcplotter.rate_vs_age_tc(num_points=3, display_plot=False, clean_up_files=False)
+
 
 def test_version():
     assert tcplotter.__version__ not in ("", "dev")
