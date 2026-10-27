@@ -223,7 +223,7 @@ def main():
     parser.add_argument(
         "--no-clean-up-files",
         dest="no_clean_up_files",
-        help="Do not delete temporary files",
+        help="Deprecated and has no effect (no temporary files are created)",
         action="store_true",
         default=False,
     )

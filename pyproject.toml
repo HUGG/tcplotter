@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tcplotter"
-version = "0.4.0"
+version = "0.5.0"
 authors = [
     {name = "Dave Whipp", email = "david.whipp@helsinki.fi"},
 ]
@@ -38,6 +38,7 @@ dependencies = [
     "matplotlib",
     "numpy",
     "scipy",
+    "tcages>=0.3",
 ]
 
 [project.urls]
