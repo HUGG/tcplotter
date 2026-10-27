@@ -109,3 +109,6 @@ def test_save_plot(tmp_path):
 def test_clean_up_files_is_deprecated():
     with pytest.warns(DeprecationWarning, match="clean_up_files"):
         tcplotter.rate_vs_age_tc(num_points=3, display_plot=False, clean_up_files=False)
+
+def test_version():
+    assert tcplotter.__version__ not in ("", "dev")

@@ -21,6 +21,11 @@ project = 'tcplotter'
 copyright = '2022-2026, David Whipp, University of Helsinki'
 author = 'David Whipp'
 
+# Version info
+import tcplotter
+release = tcplotter.__version__
+version = release
+
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
