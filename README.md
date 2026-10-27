@@ -10,7 +10,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/notebooks/tcplotter.ipynb)
 
-T<sub>c</sub>plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots presented in the article [Short communication: Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers](https://doi.org/10.5194/gchron-2021-29) by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
+T<sub>c</sub>plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots presented in the article [Short communication: Modeling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers](https://doi.org/10.5194/gchron-4-143-2022) by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
 The code is designed to be easy to use to either reproduce plots from the article or customize the plots for your own use.
 Below you will find some essential details about using the code and detailed documentation can be found on the [tcplotter documentation site](https://tcplotter.readthedocs.io/).
 
