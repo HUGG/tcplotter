@@ -1,10 +1,13 @@
 # T<sub>c</sub>plotter code description and instructions for use
 
 [![DOI](https://zenodo.org/badge/444915688.svg)](https://zenodo.org/badge/latestdoi/444915688)
+[![Build, test, and deploy](https://github.com/HUGG/tcplotter/actions/workflows/publish-to-pypi.yml/badge.svg)](https://github.com/HUGG/tcplotter/actions/workflows/publish-to-pypi.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Python versions](https://img.shields.io/pypi/pyversions/tcplotter)](https://pypi.org/project/tcplotter/)
 [![PyPI - Version](https://img.shields.io/pypi/v/tcplotter)](https://pypi.org/project/tcplotter/)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/tcplotter/badges/version.svg)](https://anaconda.org/conda-forge/tcplotter)
 [![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/notebooks/tcplotter.ipynb)
 
 T<sub>c</sub>plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots presented in the article [Short communication: Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers](https://doi.org/10.5194/gchron-2021-29) by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
@@ -26,7 +29,9 @@ pip install tcplotter
 
 You can also find installation instructions on the [T<sub>c</sub>plotter documentation page](https://tcplotter.readthedocs.io/en/latest/installation.html#installing-the-latest-version-of-t-sub-c-sub-plotter-from-github).
 
-**Note**: In order for T<sub>c</sub>plotter to work properly you will also need to install the thermochronometer age prediction programs available in the [T<sub>c</sub>core package](https://github.com/HUGG/Tc_core/).
+Installing T<sub>c</sub>plotter also installs [T<sub>c</sub>ages](https://github.com/HUGG/tcages), which provides the thermochronometer age prediction codes. Pre-built packages are available for Linux, macOS and Windows, so no compilers are needed.
+
+**Note**: T<sub>c</sub>plotter versions up to 0.4.0 required installing separate age prediction programs from the T<sub>c</sub>core package. This is no longer necessary from version 0.5.0 onwards.
 
 ## Usage
 
@@ -91,7 +96,11 @@ You're also welcome to cite the manuscript related to T<sub>c</sub>plotter when 
 
 ### How to cite related articles
 
-The age prediction software used for calculating apatite and zircon (U-Th)/He and apatite fission-track ages was written by Richard Ketcham at the University of Texas, USA. Results published using this software should also cite the articles below:
+The age prediction software used for calculating apatite and zircon (U-Th)/He and apatite fission-track ages (provided by [T<sub>c</sub>ages](https://github.com/HUGG/tcages)) was written by Richard Ketcham at the University of Texas, USA. Results published using this software should also cite the articles below:
+
+- Flowers, R. M., Ketcham, R. A., Shuster, D. L., and Farley, K. A.: Apatite (U-Th)/He thermochronometry using a radiation damage accumulation and annealing model, Geochimica et Cosmochimica Acta, 73, 2347–2365, doi: [10.1016/j.gca.2009.01.015](https://doi.org/10.1016/j.gca.2009.01.015), 2009.
+
+- Guenthner, W. R., Reiners, P. W., Ketcham, R. A., Nasdala, L., and Giester, G.: Helium diffusion in natural zircon: Radiation damage, anisotropy, and the interpretation of zircon (U-Th)/He thermochronology, American Journal of Science, 313, 145–198, doi: [10.2475/03.2013.01](https://doi.org/10.2475/03.2013.01), 2013.
 
 - Ketcham, R. A., Donelick, R. A., & Carlson, W. D.: Variability of apatite fission-track annealing kinetics III: Extrapolation to geological time scales. American Mineralogist, 84, 1235-1255, doi: [10.2138/am-1999-0903](https://doi.org/10.2138/am-1999-0903), 1999.
 
@@ -99,4 +108,5 @@ The age prediction software used for calculating apatite and zircon (U-Th)/He an
 
 ## License
 
-The T<sub>c</sub>plotter software is licensed under an MIT License: [T<sub>c</sub>plotter software license](LICENSE)
+T<sub>c</sub>plotter is distributed under the [GNU General Public License v3.0 or later](LICENSE).
+Versions up to 0.4.0 were released under the MIT License.

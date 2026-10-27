@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use tcplotter in your work, please cite it as below."
+type: software
+title: "tcplotter: a Python package for creating and customizing thermochronometer age and closure temperature plots"
+authors:
+  - family-names: Whipp
+    given-names: David M.
+    affiliation: University of Helsinki, Finland
+  - family-names: Ketcham
+    given-names: Richard A.
+    affiliation: University of Texas at Austin, USA
+version: 0.5.0
+doi: 10.5281/zenodo.5958939
+license: GPL-3.0-or-later
+repository-code: "https://github.com/HUGG/tcplotter"
+url: "https://tcplotter.readthedocs.io/"
+keywords:
+  - thermochronology
+  - geology
+  - geophysics
+references:
+  - type: article
+    title: "Short communication: Modeling competing effects of cooling rate, grain size, and radiation damage in low-temperature thermochronometers"
+    authors:
+      - family-names: Whipp
+        given-names: David M.
+      - family-names: Kellett
+        given-names: Dawn A.
+      - family-names: Coutand
+        given-names: Isabelle
+      - family-names: Ketcham
+        given-names: Richard A.
+    journal: Geochronology
+    volume: 4
+    start: 143
+    end: 152
+    year: 2022
+    doi: 10.5194/gchron-4-143-2022

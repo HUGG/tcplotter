@@ -2,10 +2,11 @@ name: tcplotter-binder
 channels:
   - conda-forge
 dependencies:
+  - ipywidgets
   - matplotlib >= 3.8
   - numpy
   - scipy
   - python >= 3.10
   - pip
   - pip:
-    - tcplotter
+    - tcplotter>=0.5

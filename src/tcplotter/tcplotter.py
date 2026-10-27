@@ -4,28 +4,14 @@ from matplotlib.ticker import ScalarFormatter
 import numpy as np
 from pathlib import Path
 from scipy.interpolate import interp1d, RegularGridInterpolator
-import shutil
-import subprocess
+import tcages
+import warnings
 
 
 # Define function for calculating effective uranium concentration
 def calc_eu(uranium, thorium):
     """Calculates effective uranium concentration from U, Th inputs (Cooperdock et al., 2019)"""
     return uranium + 0.238 * thorium
-
-
-def check_execs() -> None:
-    """Checks whether all required executables exist."""
-
-    # Check that executables are in $PATH
-    for executable in ("RDAAM_He", "ketch_aft"):
-        exec_path = shutil.which(executable)
-        if exec_path is None:
-            raise FileNotFoundError(
-                f"{executable} executable not found. See instructions at https://github.com/HUGG/Tc_core to fix this."
-            )
-
-    return None
 
 
 def create_output_directory(wd, dir=""):
@@ -66,7 +52,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                             f"Warning: eU concentration for {data[i][0].lower()} age on line {i + 1} not within modelled range."
                         )
                         print(
-                            f"         This age will be excluded from plotting and the misfit calculation."
+                            "         This age will be excluded from plotting and the misfit calculation."
                         )
                     # Check if value is not within radius range
                     elif not (min(ap_y) <= float(data[i][4]) <= max(ap_y)):
@@ -74,7 +60,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                             f"Warning: Grain radius for {data[i][0].lower()} age on line {i + 1} not within modelled range."
                         )
                         print(
-                            f"         This age will be excluded from plotting and the misfit calculation."
+                            "         This age will be excluded from plotting and the misfit calculation."
                         )
                     else:
                         ahe_age.append(float(data[i][1]))
@@ -90,7 +76,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                             f"Warning: eU concentration for {data[i][0].lower()} age {i + 1} not within modelled range."
                         )
                         print(
-                            f"         This age will be excluded from plotting and the misfit calculation."
+                            "         This age will be excluded from plotting and the misfit calculation."
                         )
                     # Check if value is not within radius range
                     elif not (min(zr_y) <= float(data[i][4]) <= max(zr_y)):
@@ -98,7 +84,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                             f"Warning: Grain radius for {data[i][0].lower()} age {i + 1} not within modelled range."
                         )
                         print(
-                            f"         This age will be excluded from plotting and the misfit calculation."
+                            "         This age will be excluded from plotting and the misfit calculation."
                         )
                     else:
                         zhe_age.append(float(data[i][1]))
@@ -118,7 +104,7 @@ def read_age_data(file, ap_x, ap_y, zr_x, zr_y):
                     print(
                         f"Warning: {data[i][0].lower()} age on line {i + 1} missing radius value."
                     )
-                print(f"         Age will not be plotted.")
+                print("         Age will not be plotted.")
         # Create new lists with data file values
         n_ahe = len(ahe_age)
         n_zhe = len(zhe_age)
@@ -151,7 +137,6 @@ def calculate_misfit(age_data, age_list, param_x, param_y):
         std_dev.append(age_data[1][i])
     # Calculate misfit
     misfit = chi_squared(measured_ages, predicted_ages, std_dev)
-    n_ages = len(measured_ages)
     return misfit[0]
 
 
@@ -454,9 +439,6 @@ def eu_vs_radius(
             )
             use_widget = False
 
-    # Define location of RDAAM executable
-    rdaam_path = shutil.which("RDAAM_He")
-
     # Define working directory
     wd = Path.cwd()
 
@@ -499,9 +481,6 @@ def eu_vs_radius(
         model_type = "apatite, zircon age/Tc (eU vs. radius)"
     else:
         raise ValueError("Bad value for plot_type. Should be 1, 2, or 3.")
-
-    # Define time-temperature history filename
-    tt_filename = "simple_time_temp.txt"
 
     # Set plot style
     plt.style.use(plot_style)
@@ -563,11 +542,6 @@ def eu_vs_radius(
         input_tt_path = wd / input_tt_file
         time_hist, temp_hist = read_tt_history(input_tt_path)
 
-    # Write cooling history points to file
-    with open(tt_filename, "w") as f:
-        for i in range(len(time_hist)):
-            f.write(f"{time_hist[i]:.4f},{temp_hist[i]:.1f}\n")
-
     # Echo total model run time and cooling rate
     if verbose and cooling_hist_type == 1:
         print(
@@ -612,51 +586,34 @@ def eu_vs_radius(
             zr_y_list.append(zr_radius)
 
             # Calculate (U-Th)/He ages
-            command = (
-                rdaam_path
-                + " "
-                + tt_filename
-                + " "
-                + str(ap_radius)
-                + " "
-                + str(ap_uranium)
-                + " "
-                + str(ap_thorium)
-                + " "
-                + str(zr_radius)
-                + " "
-                + str(zr_uranium)
-                + " "
-                + str(zr_thorium)
+            he_ages = tcages.he_ages(
+                time_hist,
+                temp_hist,
+                ap_rad=ap_radius,
+                ap_u=ap_uranium,
+                ap_th=ap_thorium,
+                zr_rad=zr_radius,
+                zr_u=zr_uranium,
+                zr_th=zr_thorium,
             )
-            p = subprocess.Popen(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-            )
-
-            # Parse output for ages
-            stdout = p.stdout.readlines()
-            corr_ahe_age = stdout[0].split()[7].decode("UTF-8")
-            corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
+            corr_ahe_age = he_ages.ahe_corr
+            corr_zhe_age = he_ages.zhe_corr
 
             # Find closure temperatures from cooling ages and thermal history
             tc_interp = interp1d(time_hist, temp_hist)
-            ahe_tc = tc_interp(float(corr_ahe_age))
-            zhe_tc = tc_interp(float(corr_zhe_age))
+            ahe_tc = tc_interp(corr_ahe_age)
+            zhe_tc = tc_interp(corr_zhe_age)
 
             # Add closure temperatures, ages to lists
             ahe_tc_list.append(ahe_tc)
-            ahe_age_list.append(float(corr_ahe_age))
+            ahe_age_list.append(corr_ahe_age)
             zhe_tc_list.append(zhe_tc)
-            zhe_age_list.append(float(corr_zhe_age))
+            zhe_age_list.append(corr_zhe_age)
 
             if verbose:
                 print(
-                    f"AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C)"
+                    f"AHe: {corr_ahe_age:.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {corr_zhe_age:.2f} Ma (Tc: {zhe_tc:.1f}°C)"
                 )
-
-    # Clean up Tt file
-    tt_file = Path(wd, tt_filename)
-    tt_file.unlink()
 
     # Calculate age misfits if age data file is used and option is selected
     if calc_misfit:
@@ -675,9 +632,9 @@ def eu_vs_radius(
             )
         else:
             print(
-                f"Warning: Misfit calculation requested, but no AHe or ZHe ages found in data file."
+                "Warning: Misfit calculation requested, but no AHe or ZHe ages found in data file."
             )
-            print(f"         Misfit will not be calculated.")
+            print("         Misfit will not be calculated.")
 
     # Apatite eU versus radius
     if plot_type == 1:
@@ -690,7 +647,7 @@ def eu_vs_radius(
             age_max = max(ahe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_age = ax[0].tricontour(
+            ax[0].tricontour(
                 ap_x_list,
                 ap_y_list,
                 ahe_age_list,
@@ -702,7 +659,7 @@ def eu_vs_radius(
                 linewidths=2.0,
             )
         # Create age contour fill
-        ap_contourf_age = ax[0].tricontourf(
+        ax[0].tricontourf(
             ap_x_list,
             ap_y_list,
             ahe_age_list,
@@ -753,7 +710,7 @@ def eu_vs_radius(
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc = ax[1].tricontour(
+            ax[1].tricontour(
                 ap_x_list,
                 ap_y_list,
                 ahe_tc_list,
@@ -803,7 +760,7 @@ def eu_vs_radius(
             age_max = max(zhe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_age = ax[0].tricontour(
+            ax[0].tricontour(
                 zr_x_list,
                 zr_y_list,
                 zhe_age_list,
@@ -815,7 +772,7 @@ def eu_vs_radius(
                 linewidths=2.0,
             )
         # Create age contour fill
-        zr_contourf_age = ax[0].tricontourf(
+        ax[0].tricontourf(
             zr_x_list,
             zr_y_list,
             zhe_age_list,
@@ -866,7 +823,7 @@ def eu_vs_radius(
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc = ax[1].tricontour(
+            ax[1].tricontour(
                 zr_x_list,
                 zr_y_list,
                 zhe_tc_list,
@@ -916,7 +873,7 @@ def eu_vs_radius(
             age_max = max(ahe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_age = ax[0][0].tricontour(
+            ax[0][0].tricontour(
                 ap_x_list,
                 ap_y_list,
                 ahe_age_list,
@@ -928,7 +885,7 @@ def eu_vs_radius(
                 linewidths=2.0,
             )
         # Create age contour fill
-        ap_contourf_age = ax[0][0].tricontourf(
+        ax[0][0].tricontourf(
             ap_x_list,
             ap_y_list,
             ahe_age_list,
@@ -979,7 +936,7 @@ def eu_vs_radius(
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc = ax[0][1].tricontour(
+            ax[0][1].tricontour(
                 ap_x_list,
                 ap_y_list,
                 ahe_tc_list,
@@ -1027,7 +984,7 @@ def eu_vs_radius(
             age_max = max(zhe_age_list)
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_age = ax[1][0].tricontour(
+            ax[1][0].tricontour(
                 zr_x_list,
                 zr_y_list,
                 zhe_age_list,
@@ -1039,7 +996,7 @@ def eu_vs_radius(
                 linewidths=2.0,
             )
         # Create age contour fill
-        zr_contourf_age = ax[1][0].tricontourf(
+        ax[1][0].tricontourf(
             zr_x_list,
             zr_y_list,
             zhe_age_list,
@@ -1090,7 +1047,7 @@ def eu_vs_radius(
 
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc = ax[1][1].tricontour(
+            ax[1][1].tricontour(
                 zr_x_list,
                 zr_y_list,
                 zhe_tc_list,
@@ -1380,9 +1337,6 @@ def rate_vs_radius_eu(
             )
             use_widget = False
 
-    # Define location of RDAAM executable
-    rdaam_path = shutil.which("RDAAM_He")
-
     # Define working directory
     wd = Path.cwd()
 
@@ -1403,7 +1357,7 @@ def rate_vs_radius_eu(
 
     # Calculate effective uranium
     ap_eu = calc_eu(ap_u, ap_thorium)
-    zr_eu = calc_eu(zr_u, zr_thorium)
+    calc_eu(zr_u, zr_thorium)
 
     # Total number of models
     total_models = len(ap_u) * len(rates) + len(ap_rad) * len(rates)
@@ -1418,9 +1372,6 @@ def rate_vs_radius_eu(
     else:
         raise ValueError("Bad value for parameter plot_type. Must be 1, 2, or 3.")
 
-    # Define time-temperature history filename
-    tt_filename = "simple_time_temp.txt"
-
     # Set plot style
     plt.style.use(plot_style)
 
@@ -1433,12 +1384,8 @@ def rate_vs_radius_eu(
     # Set plot loop variables
     ap_x1 = rates
     ap_y1 = ap_rad
-    zr_x1 = rates
-    zr_y1 = zr_rad
     ap_x2 = rates
     ap_y2 = ap_eu
-    zr_x2 = rates
-    zr_y2 = zr_eu
 
     # Create lists for storing closure temperatures, ages
     ahe_tc_list1 = []
@@ -1492,11 +1439,10 @@ def rate_vs_radius_eu(
             ap_y_list1.append(ap_radius)
             zr_y_list1.append(zr_radius)
 
-            # Write synthetic cooling history points to file
+            # Define synthetic cooling history
             start_time = temp_max / rate
-            with open(tt_filename, "w") as f:
-                f.write("0.0,0.0\n")
-                f.write("{0:.4f},{1:.1f}".format(start_time, temp_max))
+            time_hist = [0.0, start_time]
+            temp_hist = [0.0, temp_max]
 
             # Screen output
             if verbose:
@@ -1505,36 +1451,23 @@ def rate_vs_radius_eu(
                 )
 
             # Calculate (U-Th)/He ages
-            command = (
-                rdaam_path
-                + " "
-                + tt_filename
-                + " "
-                + str(ap_radius)
-                + " "
-                + str(ap_uranium)
-                + " "
-                + str(ap_thorium)
-                + " "
-                + str(zr_radius)
-                + " "
-                + str(zr_uranium)
-                + " "
-                + str(zr_thorium)
+            he_ages = tcages.he_ages(
+                time_hist,
+                temp_hist,
+                ap_rad=ap_radius,
+                ap_u=ap_uranium,
+                ap_th=ap_thorium,
+                zr_rad=zr_radius,
+                zr_u=zr_uranium,
+                zr_th=zr_thorium,
             )
-            p = subprocess.Popen(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-            )
-
-            # Parse output for ages
-            stdout = p.stdout.readlines()
-            corr_ahe_age = stdout[0].split()[7].decode("UTF-8")
-            corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
+            corr_ahe_age = he_ages.ahe_corr
+            corr_zhe_age = he_ages.zhe_corr
 
             # Find closure temperatures from cooling ages and thermal history
-            tc_interp = interp1d([0.0, start_time], [0.0, temp_max])
-            ahe_tc = tc_interp(float(corr_ahe_age))
-            zhe_tc = tc_interp(float(corr_zhe_age))
+            tc_interp = interp1d(time_hist, temp_hist)
+            ahe_tc = tc_interp(corr_ahe_age)
+            zhe_tc = tc_interp(corr_zhe_age)
 
             # Add closure temperatures to lists
             ahe_tc_list1.append(ahe_tc)
@@ -1542,7 +1475,7 @@ def rate_vs_radius_eu(
 
             if verbose:
                 print(
-                    f"AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C)"
+                    f"AHe: {corr_ahe_age:.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {corr_zhe_age:.2f} Ma (Tc: {zhe_tc:.1f}°C)"
                 )
 
     # Loop over plotables - loop 2: rate versus eU
@@ -1569,11 +1502,10 @@ def rate_vs_radius_eu(
             ap_y_list2.append(ap_uranium)
             zr_y_list2.append(zr_uranium)
 
-            # Write synthetic cooling history points to file
+            # Define synthetic cooling history
             start_time = temp_max / rate
-            with open(tt_filename, "w") as f:
-                f.write("0.0,0.0\n")
-                f.write("{0:.4f},{1:.1f}".format(start_time, temp_max))
+            time_hist = [0.0, start_time]
+            temp_hist = [0.0, temp_max]
 
             # Screen output
             if verbose:
@@ -1582,36 +1514,23 @@ def rate_vs_radius_eu(
                 )
 
             # Calculate (U-Th)/He ages
-            command = (
-                rdaam_path
-                + " "
-                + tt_filename
-                + " "
-                + str(ap_radius)
-                + " "
-                + str(ap_uranium)
-                + " "
-                + str(ap_thorium)
-                + " "
-                + str(zr_radius)
-                + " "
-                + str(zr_uranium)
-                + " "
-                + str(zr_thorium)
+            he_ages = tcages.he_ages(
+                time_hist,
+                temp_hist,
+                ap_rad=ap_radius,
+                ap_u=ap_uranium,
+                ap_th=ap_thorium,
+                zr_rad=zr_radius,
+                zr_u=zr_uranium,
+                zr_th=zr_thorium,
             )
-            p = subprocess.Popen(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-            )
-
-            # Parse output for ages
-            stdout = p.stdout.readlines()
-            corr_ahe_age = stdout[0].split()[7].decode("UTF-8")
-            corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
+            corr_ahe_age = he_ages.ahe_corr
+            corr_zhe_age = he_ages.zhe_corr
 
             # Find closure temperatures from cooling ages and thermal history
-            tc_interp = interp1d([0.0, start_time], [0.0, temp_max])
-            ahe_tc = tc_interp(float(corr_ahe_age))
-            zhe_tc = tc_interp(float(corr_zhe_age))
+            tc_interp = interp1d(time_hist, temp_hist)
+            ahe_tc = tc_interp(corr_ahe_age)
+            zhe_tc = tc_interp(corr_zhe_age)
 
             # Add closure temperatures to lists
             ahe_tc_list2.append(ahe_tc)
@@ -1619,19 +1538,15 @@ def rate_vs_radius_eu(
 
             if verbose:
                 print(
-                    f"AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C)"
+                    f"AHe: {corr_ahe_age:.2f} Ma (Tc: {ahe_tc:.1f}°C); ZHe: {corr_zhe_age:.2f} Ma (Tc: {zhe_tc:.1f}°C)"
                 )
-
-    # Clean up temporary tt file
-    tt_file = Path(wd, tt_filename)
-    tt_file.unlink()
 
     # Plot only values for apatite (U-Th)/He
     if plot_type == 1:
         # --- Apatite cooling rate versus radius ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc1 = ax[0].tricontour(
+            ax[0].tricontour(
                 ap_x_list1,
                 ap_y_list1,
                 ahe_tc_list1,
@@ -1641,7 +1556,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        ap_contourf_tc1 = ax[0].tricontourf(
+        ax[0].tricontourf(
             ap_x_list1,
             ap_y_list1,
             ahe_tc_list1,
@@ -1666,7 +1581,7 @@ def rate_vs_radius_eu(
         # --- Apatite cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc2 = ax[1].tricontour(
+            ax[1].tricontour(
                 ap_x_list2,
                 ap_y_list2,
                 ahe_tc_list2,
@@ -1676,7 +1591,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        ap_contourf_tc2 = ax[1].tricontourf(
+        ax[1].tricontourf(
             ap_x_list2,
             ap_y_list2,
             ahe_tc_list2,
@@ -1703,7 +1618,7 @@ def rate_vs_radius_eu(
         # --- Zircon cooling rate versus radius ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc1 = ax[0].tricontour(
+            ax[0].tricontour(
                 zr_x_list1,
                 zr_y_list1,
                 zhe_tc_list1,
@@ -1713,7 +1628,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        zr_contourf_tc1 = ax[0].tricontourf(
+        ax[0].tricontourf(
             zr_x_list1,
             zr_y_list1,
             zhe_tc_list1,
@@ -1738,7 +1653,7 @@ def rate_vs_radius_eu(
         # --- Zircon cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc2 = ax[1].tricontour(
+            ax[1].tricontour(
                 zr_x_list2,
                 zr_y_list2,
                 zhe_tc_list2,
@@ -1748,7 +1663,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        zr_contourf_tc2 = ax[1].tricontourf(
+        ax[1].tricontourf(
             zr_x_list2,
             zr_y_list2,
             zhe_tc_list2,
@@ -1775,7 +1690,7 @@ def rate_vs_radius_eu(
         # --- Apatite cooling rate versus radius ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc1 = ax[0][0].tricontour(
+            ax[0][0].tricontour(
                 ap_x_list1,
                 ap_y_list1,
                 ahe_tc_list1,
@@ -1785,7 +1700,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        ap_contourf_tc1 = ax[0][0].tricontourf(
+        ax[0][0].tricontourf(
             ap_x_list1,
             ap_y_list1,
             ahe_tc_list1,
@@ -1810,7 +1725,7 @@ def rate_vs_radius_eu(
         # --- Apatite cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            ap_contour_tc2 = ax[0][1].tricontour(
+            ax[0][1].tricontour(
                 ap_x_list2,
                 ap_y_list2,
                 ahe_tc_list2,
@@ -1820,7 +1735,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        ap_contourf_tc2 = ax[0][1].tricontourf(
+        ax[0][1].tricontourf(
             ap_x_list2,
             ap_y_list2,
             ahe_tc_list2,
@@ -1845,7 +1760,7 @@ def rate_vs_radius_eu(
         # --- Zircon cooling rate versus radius plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc1 = ax[1][0].tricontour(
+            ax[1][0].tricontour(
                 zr_x_list1,
                 zr_y_list1,
                 zhe_tc_list1,
@@ -1855,7 +1770,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        zr_contourf_tc1 = ax[1][0].tricontourf(
+        ax[1][0].tricontourf(
             zr_x_list1,
             zr_y_list1,
             zhe_tc_list1,
@@ -1880,7 +1795,7 @@ def rate_vs_radius_eu(
         # --- Zircon cooling rate versus eU plot ---
         # Create colored contour lines to fill gaps between filled contours in pdf files
         if save_plot and plot_file_format == "pdf":
-            zr_contour_tc2 = ax[1][1].tricontour(
+            ax[1][1].tricontour(
                 zr_x_list2,
                 zr_y_list2,
                 zhe_tc_list2,
@@ -1890,7 +1805,7 @@ def rate_vs_radius_eu(
                 linewidths=2.0,
             )
         # Create closure temperature contour fill
-        zr_contourf_tc2 = ax[1][1].tricontourf(
+        ax[1][1].tricontourf(
             zr_x_list2,
             zr_y_list2,
             zhe_tc_list2,
@@ -2100,7 +2015,7 @@ def rate_vs_age_tc(
     display_plot : bool, default=True
         Flag for whether to display the plot.
     clean_up_files : bool, default=True
-        Flag for whether to delete temporary output files after the code has run.
+        Deprecated and has no effect. Temporary files are no longer created.
     verbose : bool, default=False
         Enable/disable verbose output.
     use_widget : bool, default=False
@@ -2131,11 +2046,13 @@ def rate_vs_age_tc(
             )
             use_widget = False
 
-    # Define location of RDAAM executable
-    rdaam_path = shutil.which("RDAAM_He")
-
-    # Define location of ketch_aft executable
-    ketch_path = shutil.which("ketch_aft")
+    # Warn about use of deprecated clean_up_files parameter
+    if not clean_up_files:
+        warnings.warn(
+            "clean_up_files is deprecated and has no effect, as temporary files are no longer created. It will be removed in a future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     # Define working directory
     wd = Path.cwd()
@@ -2167,9 +2084,6 @@ def rate_vs_age_tc(
         f"Intermediate eU (ap={ap_u_list[1]:.1f}, zr={zr_u_list[1]:.1f} ppm)",
         f"High eU (ap={ap_u_list[2]:.1f}, zr={zr_u_list[2]:.1f} ppm)",
     ]
-
-    # Define time-temperature history filename
-    tt_filename = "simple_time_temp.txt"
 
     # Calculate total number of models that will be run
     total_models = len(ap_u_list) * len(rates)
@@ -2231,66 +2145,45 @@ def rate_vs_age_tc(
 
             # Define thermal history
             start_time = temp_max / rate
-            with open(tt_filename, "w") as f:
-                f.write("0.0,0.0\n")
-                f.write("{0:.4f},{1:.1f}".format(start_time, temp_max))
+            time_hist = [0.0, start_time]
+            temp_hist = [0.0, temp_max]
 
             # Calculate He ages
-            command = (
-                rdaam_path
-                + " "
-                + tt_filename
-                + " "
-                + str(ap_rad)
-                + " "
-                + str(ap_uranium)
-                + " "
-                + str(ap_thorium)
-                + " "
-                + str(zr_rad)
-                + " "
-                + str(zr_uranium)
-                + " "
-                + str(zr_thorium)
+            he_ages = tcages.he_ages(
+                time_hist,
+                temp_hist,
+                ap_rad=ap_rad,
+                ap_u=ap_uranium,
+                ap_th=ap_thorium,
+                zr_rad=zr_rad,
+                zr_u=zr_uranium,
+                zr_th=zr_thorium,
             )
-            p = subprocess.Popen(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-            )
-
-            # Parse output for ages
-            stdout = p.stdout.readlines()
-            corr_ahe_age = stdout[0].split()[7].decode("UTF-8")
-            corr_zhe_age = stdout[1].split()[7].decode("UTF-8")
+            corr_ahe_age = he_ages.ahe_corr
+            corr_zhe_age = he_ages.zhe_corr
 
             # Calculate AFT age
-            command = ketch_path + " " + tt_filename
-            p = subprocess.Popen(
-                command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-            )
-
-            # Parse output for AFT age
-            stdout = p.stdout.readlines()
-            aft_age = stdout[0].split()[4][:-1].decode("UTF-8")
+            aft_age = tcages.aft_age(time_hist, temp_hist).age
 
             # Use predicted ages to get closure temperature
-            tc_interp = interp1d([0.0, start_time], [0.0, temp_max])
-            ahe_tc = tc_interp(float(corr_ahe_age))
-            aft_tc = tc_interp(float(aft_age))
-            zhe_tc = tc_interp(float(corr_zhe_age))
+            tc_interp = interp1d(time_hist, temp_hist)
+            ahe_tc = tc_interp(corr_ahe_age)
+            aft_tc = tc_interp(aft_age)
+            zhe_tc = tc_interp(corr_zhe_age)
 
             # Add current iteration values to plotable lists
             rate_list.append(rate)
             ahe_tc_list.append(ahe_tc)
             aft_tc_list.append(aft_tc)
             zhe_tc_list.append(zhe_tc)
-            ahe_age_list.append(float(corr_ahe_age))
-            aft_age_list.append(float(aft_age))
-            zhe_age_list.append(float(corr_zhe_age))
+            ahe_age_list.append(corr_ahe_age)
+            aft_age_list.append(aft_age)
+            zhe_age_list.append(corr_zhe_age)
 
             # Echo ages for this iteration
             if verbose:
                 print(
-                    f"AHe: {float(corr_ahe_age):.2f} Ma (Tc: {ahe_tc:.1f}°C); AFT: {float(aft_age):.2f} Ma (Tc: {aft_tc:.1f}°C); ZHe: {float(corr_zhe_age):.2f} Ma (Tc: {zhe_tc:.1f}°C) -- total time: {start_time:.1f} Myr"
+                    f"AHe: {corr_ahe_age:.2f} Ma (Tc: {ahe_tc:.1f}°C); AFT: {aft_age:.2f} Ma (Tc: {aft_tc:.1f}°C); ZHe: {corr_zhe_age:.2f} Ma (Tc: {zhe_tc:.1f}°C) -- total time: {start_time:.1f} Myr"
                 )
 
         # Assign uncertainties if plotting ages
@@ -2446,14 +2339,6 @@ def rate_vs_age_tc(
             ax[i][1].legend()
         else:
             ax[i].legend()
-
-    # Delete temporary tt file
-    if clean_up_files:
-        tt_file = Path(wd, tt_filename)
-        tt_file.unlink()
-        ft_path = Path(wd, "ft_length.csv")
-        if ft_path.exists():
-            ft_path.unlink()
 
     # Use tight layout
     plt.tight_layout()
