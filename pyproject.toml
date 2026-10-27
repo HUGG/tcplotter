@@ -41,6 +41,9 @@ dependencies = [
     "tcages>=0.3",
 ]
 
+[project.optional-dependencies]
+tests = ["pytest"]
+
 [project.urls]
 homepage = "https://tcplotter.readthedocs.io/"
 repository = "https://github.com/HUGG/tcplotter"
@@ -51,3 +54,6 @@ time-vs-temp = "tcplotter.time_vs_temp:main"
 eu-vs-radius = "tcplotter.eu_vs_radius:main"
 rate-vs-radius-eu = "tcplotter.rate_vs_radius_eu:main"
 rate-vs-age-tc = "tcplotter.rate_vs_age_tc:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

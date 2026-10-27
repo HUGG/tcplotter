@@ -2,9 +2,10 @@
 
 [![DOI](https://zenodo.org/badge/444915688.svg)](https://zenodo.org/badge/latestdoi/444915688)
 [![PyPI - Version](https://img.shields.io/pypi/v/tcplotter)](https://pypi.org/project/tcplotter/)
+[![Build, test, and deploy](https://github.com/HUGG/tcplotter/actions/workflows/publish-to-pypi.yml/badge.svg)](https://github.com/HUGG/tcplotter/actions/workflows/publish-to-pypi.yml)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/tcplotter/badges/version.svg)](https://anaconda.org/conda-forge/tcplotter)
 [![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HUGG/tcplotter/HEAD?urlpath=lab/tree/notebooks/tcplotter.ipynb)
 
 T<sub>c</sub>plotter is a Python package for creating and customizing thermochronometer age and closure temperature plots presented in the article [Short communication: Modelling competing effects of cooling rate, grain size and radiation damage in low temperature thermochronometers](https://doi.org/10.5194/gchron-2021-29) by D. Whipp, D. Kellett, I. Coutand, and R. Ketcham.
@@ -105,4 +106,5 @@ The age prediction software used for calculating apatite and zircon (U-Th)/He an
 
 ## License
 
-The T<sub>c</sub>plotter software is licensed under an MIT License: [T<sub>c</sub>plotter software license](LICENSE)
+T<sub>c</sub>plotter is distributed under the [GNU General Public License v3.0 or later](LICENSE).
+Versions up to 0.4.0 were released under the MIT License.
