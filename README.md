@@ -1,8 +1,10 @@
 # T<sub>c</sub>plotter code description and instructions for use
 
 [![DOI](https://zenodo.org/badge/444915688.svg)](https://zenodo.org/badge/latestdoi/444915688)
-[![PyPI - Version](https://img.shields.io/pypi/v/tcplotter)](https://pypi.org/project/tcplotter/)
 [![Build, test, and deploy](https://github.com/HUGG/tcplotter/actions/workflows/publish-to-pypi.yml/badge.svg)](https://github.com/HUGG/tcplotter/actions/workflows/publish-to-pypi.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Python versions](https://img.shields.io/pypi/pyversions/tcplotter)](https://pypi.org/project/tcplotter/)
+[![PyPI - Version](https://img.shields.io/pypi/v/tcplotter)](https://pypi.org/project/tcplotter/)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/tcplotter/badges/version.svg)](https://anaconda.org/conda-forge/tcplotter)
 [![Documentation Status](https://readthedocs.org/projects/tcplotter/badge/?version=latest)](https://tcplotter.readthedocs.io/en/latest/?badge=latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
