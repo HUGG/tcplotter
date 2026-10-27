@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'tcplotter'
-copyright = '2022, David Whipp, University of Helsinki'
+copyright = '2022-2026, David Whipp, University of Helsinki'
 author = 'David Whipp'
 
 # -- General configuration ---------------------------------------------------
@@ -96,10 +96,10 @@ master_doc = "index"
 pygments_style = "sphinx"
 
 # Allow errors
-execution_allow_errors = True
+nb_execution_allow_errors = True
 
 # Do not execute cells
-jupyter_execute_notebooks = "off"
+nb_execution_mode = "off"
 
 # Allow myst admonition style
 myst_admonition_enable = True
